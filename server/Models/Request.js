@@ -1,7 +1,8 @@
-import { Schema, Types } from "mongoose";
+import mongoose, { Schema, Types } from "mongoose";
 
 const requestSchema = new Schema({
     status: {
+        type: String,
         default: "pending",
         enum: ["pending", "accepted", "rejected"]
     },
@@ -20,4 +21,4 @@ const requestSchema = new Schema({
 })
 
 
-export const request = mongoose.models.request || mongoose.models("Request", requestSchema)
+export const RequestUser = mongoose.models.Request || mongoose.model("Request", requestSchema)

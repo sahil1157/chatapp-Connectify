@@ -69,9 +69,6 @@ const getAllUsers = async (req, res, next) => {
             ...keyword,
             _id: { $ne: req.user._id }
         });
-
-        console.log(findUsers)
-
         res.status(200).json(findUsers);
     } catch (error) {
         next(error);
@@ -83,6 +80,9 @@ const emitEvent = (req, event, user, data) => {
     console.log("event", event)
 }
 
+const deleteFilesFromCloudinary = async(req, res, next) => {
+
+}
 
 
 
@@ -91,7 +91,8 @@ export {
     registerUser,
     authUser,
     getAllUsers,
-    emitEvent
+    emitEvent, 
+    deleteFilesFromCloudinary
 }
 
 

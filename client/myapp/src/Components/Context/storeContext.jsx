@@ -1,9 +1,11 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import axios from 'axios'
+import { useNavigate } from "react-router-dom";
 
 export const storeContext = createContext(null)
 
 const StoreContextProvider = (props) => {
+    const navigate = useNavigate()
 
     // storing the value of userSignedup details to backend
     const api = axios.create({
@@ -11,6 +13,17 @@ const StoreContextProvider = (props) => {
         withCredentials: true
     })
 
+    useEffect(() => {
+        const checkUserAuth = async () => {
+            try {
+                const checkAuth = await api.get("/chat")
+                if(checkAuth)
+                    return false
+            } catch (error) {
+                return navigate("/login")
+            }}
+            checkUserAuth()
+    },[])
 
 
     const contextValue = {

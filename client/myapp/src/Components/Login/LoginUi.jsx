@@ -100,10 +100,11 @@ const LoginUi = () => {
     const handleSubmitLoginDetails = async () => {
         try {
             const submitDetails = await api.post('/login', inpVal);
-            if (submitDetails.data.valid) 
+            if (submitDetails.data.valid)
                 success();
             setGetError('')
             setLoading(false);
+            navigate("/mychats")
         } catch (error) {
             setLoading(false)
             setGetError(error.response.data.message);

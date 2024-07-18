@@ -1,18 +1,32 @@
 
-import { NEW_ATTACHMENTS, NEW_MESSAGE_ALERT } from '../Constants/emit.js'
+import { NEW_ATTACHMENTS, NEW_MESSAGE_ALERT, REFETCH_CHATS } from '../Constants/emit.js'
 import { anotherUsersAvatar } from '../lib/Helper.js'
 import Chat from '../Models/ChatModels.js'
 import User from '../Models/UserModels.js'
-import { emitEvent } from './Controllers.js'
+import { deleteFilesFromCloudinary, emitEvent } from './Controllers.js'
 import Message from '../Models/MessageModel.js'
+import { RequestUser } from '../Models/Request.js'
 
 //for searching users 
-const searchUser = async (err, req, res, next) => {
+const searchUser = async (req, res, next) => {
 
     // getting lists of name from query (URL)
     const { name } = req.query
+    try {
 
-    return res.status(200).json({ message: name })
+        const chat = await Chat.find({
+            isgroupchat: false,
+            members: req.user._id
+        })
+        // getting users with whom i have chatted with
+        const allUsersFromMyChats = chat.map((x) => x.members).flat()
+        return res.status(200).json({ message: allUsersFromMyChats })
+
+    } catch (error) {
+        return next({
+            message: error
+        })
+    }
 }
 
 // getting groupchats
@@ -299,5 +313,284 @@ const sendAttachments = async (req, res, next) => {
     }
 }
 
+// getting chat details..
 
-export { searchUser, groupChat, getMyChats, getMyGroups, addMembers, removeMembers, leaveGroup, sendAttachments }
+const getChatDetails = async (req, res, next) => {
+
+    if (req.query.populate === "true") {
+
+        const chat = await Chat.findById(req.params.id).populate("members", "avatar firstname").lean()
+
+        if (!chat) return next({
+            message: "Chat not found",
+            status: 404
+        })
+        chat.members = chat.members.map(({ _id, avatar, firstname }) => {
+            return {
+                _id,
+                avatar: avatar.url,
+                firstname
+            }
+        })
+
+        return res.status(200).json({ chat })
+    }
+    else {
+
+        const chat = await Chat.findById(req.params.id)
+        if (!chat) return next({
+            message: "chat not found"
+        })
+
+        res.status(200).json({ chat })
+
+    }
+}
+
+const renameGroup = async (req, res, next) => {
+    const chatId = req.params.id
+    const { name } = req.body
+    console.log(req.user._id)
+
+    try {
+        const chat = await Chat.findById(chatId)
+        console.log(chat)
+
+        if (!chat) return next({
+            message: "Chat not found",
+            status: 404
+        })
+
+        if (!chat.isgroupchat) return next({
+            message: "This action cannot be performed",
+            status: 403
+        })
+
+        if (chat.groupadmin.toString() !== req.user._id.toString())
+            return next({
+                message: "This action can be performed by Admin only",
+                status: 403
+            })
+
+        chat.name = name
+        await chat.save()
+
+        emitEvent(req, REFETCH_CHATS, chat.member)
+
+        res.status(200).json({ chat })
+    } catch (error) {
+        return next({
+            message: error
+        })
+    }
+}
+
+// delete chats from both group and private
+
+const deleteChat = async (req, res, next) => {
+
+    const chatId = req.params.id
+
+    try {
+        const chat = await Chat.findById(chatId)
+
+        if (!chatId) return next({
+            message: "Chat was not found",
+            status: 404
+        })
+
+        if (chat.isgroupchat && chat.groupadmin.toString() !== req.user._id.toString()) return next({
+            message: "This action can only be performed by Admin only",
+            status: 403
+        })
+
+        // deleting message and attacgments from the cloudinary
+
+        const messageWithAttachments = await Message.find({
+            chat: chatId,
+            attachments: { $exists: true, $ne: [] }
+        })
+        const public_ids = []
+
+        messageWithAttachments.forEach(({ attachments }) => {
+            attachments.forEach(({ public_id }) => {
+                public_ids.push(public_id)
+            })
+        })
+        await Promise.all(
+            [
+                deleteFilesFromCloudinary(public_ids),
+                chat.deleteOne(),
+                Message.deleteMany({ chat: chatId })
+            ])
+
+        await chat.save()
+
+        return res.status(200).json({ message: chat })
+
+    } catch (error) {
+        return next({
+            message: error
+        })
+    }
+
+
+}
+
+// getting messages
+const getMessages = async (req, res, next) => {
+    const chatId = req.params.id
+    try {
+        const chat = await Chat.findById()
+        const { page = 1 } = req.query
+        const perpage = 20
+
+        const skip = (page - 1) * perpage
+
+        const [messages, totalMessagesCount] = await promise.all([
+            Message.find({ chat: chatId })
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(perpage)
+                .populate("sender", "firstname avatar")
+                .lean(),
+            Message.countDocuments({ chat: chat })
+        ])
+
+        const totalPages = Math.ceil(totalMessagesCount / perpage)
+
+
+        return res.status(200).json({ message: messages, totalPages })
+    } catch (error) {
+        return next({
+            message: error
+        })
+    }
+
+}
+
+// sending request
+const sendRequest = async (req, res, next) => {
+    const { recieverId } = req.body
+
+    if (!recieverId) return next({
+        message: "Internal server error, Please try again later"
+    })
+
+    try {
+        const findReq = await RequestUser.findOne({
+            $or: [
+                { sender: req.user._id, reciever: recieverId },
+                { sender: recieverId, reciever: req.user._id },
+            ]
+        })
+
+        if (findReq) return next({
+            message: "Request already sent"
+        })
+
+
+        await RequestUser.create({
+            sender: req.user._id,
+            reciever: recieverId
+        })
+
+        return res.status(200).json({ success: true, message: "Friend request sent successfylly", findReq })
+    } catch (error) {
+        return next({
+            message: error
+        })
+    }
+}
+
+// accept request
+const acceptRequest = async (req, res, next) => {
+    const { RequestId, accept } = req.body
+
+    try {
+        if (!RequestId) return next({
+            message: "User not found, please try again later"
+        })
+
+        const findId = await RequestUser.findById(RequestId)
+            .populate("sender", "firstname")
+            .populate("reciever", "firstname")
+
+        if (!findId) return next({
+            message: "No request was found, please try again later"
+        })
+        if (findId.reciever._id.toString() !== req.user._id.toString()) return next({
+            message: "This action cannot be performed by unauthorized user",
+            status: 401
+        })
+
+        if (!accept) {
+            await findId.deleteOne()
+            return res.status(400).json({ message: "rejected " })
+        }
+
+        const members = [findId.sender._id, findId.reciever._id]
+        console.log(findId.sender._id)
+
+        await Promise.all(
+            [
+                Chat.create({
+                    members,
+                    name: `${findId.sender.name}-${findId.reciever.name}`
+                }),
+                findId.deleteOne()
+            ]
+        )
+
+        return res.status(200).json({ success: true, message: "Accepted", Chat })
+    }
+    catch (error) {
+        return next({
+            message: error
+        })
+    }
+}
+
+// get all notification
+
+const getAllNotification = async (req, res, next) => {
+    try {
+
+        const findRequests = await RequestUser.find({ reciever: req.user._id })
+            .populate("sender", "firstname avatar")
+
+        const allUser = findRequests.map(({ firstname, sender, _id }) => {
+            return {
+                _id,
+                firstname : sender.firstname,
+                avatar: sender.avatar.url
+            }
+        })
+        console.log(allUser)
+
+        return res.status(200).json({ allUser })
+    }
+    catch (error) {
+        return next({
+            message: error
+        })
+    }
+}
+
+export {
+    searchUser,
+    groupChat,
+    getMyChats,
+    getMyGroups,
+    addMembers,
+    removeMembers,
+    leaveGroup,
+    sendAttachments,
+    getChatDetails,
+    renameGroup,
+    deleteChat,
+    getMessages,
+    sendRequest,
+    acceptRequest,
+    getAllNotification
+}

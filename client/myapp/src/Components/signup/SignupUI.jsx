@@ -138,7 +138,7 @@ const SignupUI = () => {
                 setLoading(false)
             setError('')
             success()
-            navigate('/');
+            navigate('/login');
         } catch (error) {
             setLoading(false)
             setError(error.response.data.message);
@@ -198,7 +198,7 @@ const SignupUI = () => {
                     <p>or</p>
                     <hr className="flex-grow border-t-1 items-center flex border-gray-300 mx-2" />
                 </div>
-                <p onClick={() => navigate('/')} className='text-md md:cursor-pointer text-[#1f63bb]'>Already have an account?</p>
+                <p onClick={() => navigate('/login')} className='text-md md:cursor-pointer text-[#1f63bb]'>Already have an account?</p>
             </div>
         </div >
     )
