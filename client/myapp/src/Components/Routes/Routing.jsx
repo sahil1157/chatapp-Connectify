@@ -10,8 +10,8 @@ const Routing = () => {
         <Routes>
             <Route exact path='/signup' element={<Signup />} />
             <Route exact path='/login' element={<Login />} />
-            <Route exact path='/mychats' element={<DashB />} />
-            <Route path='/*' element={<MainDash/>} />
+            <Route exact path='/mychats/*' element={<DashB />} />
+            <Route path='/mychats/*' element={<MainDash/>} />
         </Routes>
     );
 };

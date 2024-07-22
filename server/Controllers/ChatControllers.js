@@ -7,6 +7,69 @@ import { deleteFilesFromCloudinary, emitEvent } from './Controllers.js'
 import Message from '../Models/MessageModel.js'
 import { RequestUser } from '../Models/Request.js'
 
+
+// getting my messages
+
+const myMessages = async (req, res, next) => {
+    const { userId } = req.body
+    const myId = req.user._id.toString()
+
+    try {
+
+        if (!userId || !myId)
+            return res.status(200).json({ message: "No datas found, please try again later" })
+
+        const findUserFromId = await User.findById(userId).select("firstname lastname avatar.url")
+        const findMyDetails = await User.findById(myId).select("firstname")
+
+        const chat = await Chat.findOne({
+            isgroupchat: false,
+            members: { $all: [userId, myId] }
+        })
+
+        if (!chat) {
+            const newchat = await new Chat({
+                name: `${findMyDetails.firstname} - ${findUserFromId.firstname}`,
+                isgroupchat: false,
+                members: [myId, userId]
+
+            })
+            await newchat.save()
+            return res.status(200).json({
+                details: findUserFromId,
+                chatId: newchat._id,
+                currUserId: userId,
+                text: "New message created, be the first one to text"
+
+            })
+        }
+
+        const messages = await Message.find({ chat: chat._id.toString() })
+            .populate("sender", "firstname lastname avatar.url")
+            .populate("chat")
+
+        if (messages.length === 0 || messages.length < 0) {
+            return res.status(200).json({
+                text: "No messages found, You can start the new conversation",
+                chatId: chat._id,
+                details: findUserFromId,
+                currUserId: userId
+
+            })
+        }
+        else {
+            res.status(200).json({ text: "", message: messages, valid: true, currUserId: userId, chatId: chat._id, details: findUserFromId })
+        }
+
+    } catch (error) {
+        next({
+            message: error
+        })
+    }
+}
+
+
+
 //for searching users 
 const searchUser = async (req, res, next) => {
 
@@ -562,11 +625,11 @@ const getAllNotification = async (req, res, next) => {
         const allUser = findRequests.map(({ firstname, sender, _id }) => {
             return {
                 _id,
-                firstname : sender.firstname,
+                firstname: sender.firstname,
                 avatar: sender.avatar.url
             }
         })
-        console.log(allUser)
+        // console.log(allUser)
 
         return res.status(200).json({ allUser })
     }
@@ -592,5 +655,6 @@ export {
     getMessages,
     sendRequest,
     acceptRequest,
-    getAllNotification
+    getAllNotification,
+    myMessages
 }

@@ -1,33 +1,35 @@
-import React from 'react'
-import { ChatsArray } from './ChatsArray'
+import React, { useContext } from 'react';
+import { storeContext } from "../../Components/Context/storeContext";
 
 const ChatProp = () => {
+    const { users, getMessages } = useContext(storeContext);
+
+
+
     return (
-        <>
-            <div className='flex flex-col gap-7'>
-                {
-                    ChatsArray && ChatsArray.map((x, ind) => {
-                        return (
-                            <div key={ind} className='mt-2 cursor-pointer w-full flex flex-row justify-between gap-5'>
-                                <div className='flex flex-row gap-5 w-full'>
-                                    <div className='min-w-[48px] min-h-[48px] max-w-[48px] max-h-[48px] rounded-full overflow-hidden'>
-                                        <img src={x.icon} alt="" className='w-full h-full object-cover rounded-full' />
-                                    </div>
-                                    <div className='flex flex-col w-full'>
-                                        <p className='text-md w-[87px] h-[22px] font-bold'>{x.name}</p>
-                                        <p className='text-sm text-[#7C7C7D]'>{x.message}</p>
-                                    </div>
-                                </div>
-                                <p className='text-sm text-[#686768]'>{x.date}</p>
+        <div className='flex flex-col gap-7 overflow-y-auto no-scrollbar h-full'>
+            {users && users.map((x, ind) => {
+                return (
+                    <div key={ind} onClick={() => getMessages(x._id)} className='mt-2 cursor-pointer w-full flex flex-row justify-between gap-5'>
+                        <div className='flex flex-row gap-5 w-full overflow-hidden'>
+                            <div className='min-w-[48px] min-h-[48px] max-w-[48px] max-h-[48px] rounded-full overflow-hidden'>
+                                <img src={x.avatar.url} alt="" className='w-full h-full object-cover rounded-full' />
                             </div>
-                        )
-                    })
-                }
+                            <div className='flex flex-col w-full overflow-hidden'>
+                                <div className='flex flex-row gap-1'>
+                                    <p className='text-md font-bold'>{x.firstname}</p>
+                                    <p className='text-md font-bold'>{x.lastname}</p>
+                                </div>
+                                <p className='text-sm text-[#7C7C7D] truncate'>hiii there</p>
+                            </div>
+                        </div>
+                        <p className='text-sm text-[#686768]'>2020/12/12</p>
+                    </div>
+                );
+            })}
+        </div>
 
+    );
+};
 
-            </div>
-        </>
-    )
-}
-
-export default ChatProp
+export default ChatProp;

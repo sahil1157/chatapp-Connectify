@@ -18,11 +18,6 @@ const userSchema = mongoose.Schema({
         type: String,
         require: true
     },
-    pic: {
-        type: String,
-        // require:true,
-
-    },
     avatar: {
         public_id: {
             type: String,

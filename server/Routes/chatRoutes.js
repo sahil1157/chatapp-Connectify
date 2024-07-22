@@ -15,13 +15,15 @@ import {
     getMessages,
     sendRequest,
     acceptRequest,
-    getAllNotification
+    getAllNotification,
+    myMessages
 } from '../Controllers/ChatControllers.js'
 import { attachmentsMulter } from '../middleware/Multer.js'
 
 const chatRoutes = express()
 
 chatRoutes.use(protection)
+chatRoutes.post('/mymessages/', myMessages)
 chatRoutes.get('/search', searchUser)
 chatRoutes.post('/new', groupChat)
 chatRoutes.get('/mychats', getMyChats)

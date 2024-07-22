@@ -1,27 +1,38 @@
 import User from '../Models/UserModels.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import { v2 as cloudinary } from 'cloudinary'
 
-const registerUser = async (req, res) => {
-    const { firstname, lastname, email, password, gender, avatar } = req.body
+const registerUser = async (req, res, next) => {
+    const { firstname, lastname, email, password, gender } = req.body
+    try {
+        const avatar = req.file
 
-    if (!firstname || !lastname || !email || !password || !gender)
-        return res.status(404).json({ valid: false, message: 'Please fill out all the fields before submitting' })
+        if (!firstname || !lastname || !email || !password || !gender || !avatar)
+            return res.status(404).json({ valid: false, message: 'Please fill out all the fields before submitting' })
 
-    const findEmailIfExist = await User.findOne({ email })
-    if (findEmailIfExist) return res.status(400).json({ valid: false, message: "Email already registered" })
+        const findEmailIfExist = await User.findOne({ email })
+        if (findEmailIfExist) return res.status(400).json({ valid: false, message: "Email already registered" })
 
-    const hashPass = await bcrypt.hash(password, 10)
-    const createNewUser = await User.create({
-        firstname,
-        lastname,
-        email,
-        password: hashPass,
-        gender,
-        avatar
-    })
+        const uploadResult = await cloudinary.uploader.upload(avatar.path);
+        const hashPass = await bcrypt.hash(password, 10)
+        const createNewUser = await User.create({
+            firstname,
+            lastname,
+            email,
+            password: hashPass,
+            gender,
+            avatar: {
+                public_id: uploadResult.public_id,
+                url: uploadResult.secure_url
+            }
+        })
+        if (createNewUser)
+            res.status(200).json({ message: "Success" })
 
-    if (createNewUser) res.status(200).json({ valid: true, message: "User successfully created" })
+    } catch (error) {
+        next({ message: error })
+    }
 
 }
 
@@ -49,13 +60,17 @@ const authUser = async (req, res, next) => {
         return res.status(200).json({ valid: true, message: "Login successful" });
 
     } catch (err) {
-        next(err);
+        next({
+            message: "Internal server error",
+            status: 401
+        });
     }
 };
 
 
 // getting all users.
 const getAllUsers = async (req, res, next) => {
+    const myId = req.user.id
     try {
         const keyword = req.query.search ? {
             $or: [
@@ -67,9 +82,9 @@ const getAllUsers = async (req, res, next) => {
 
         const findUsers = await User.find({
             ...keyword,
-            _id: { $ne: req.user._id }
+            _id: { $ne: req.user.id }
         });
-        res.status(200).json(findUsers);
+        res.status(200).json({findUsers, myId} );
     } catch (error) {
         next(error);
     }
@@ -77,10 +92,10 @@ const getAllUsers = async (req, res, next) => {
 
 
 const emitEvent = (req, event, user, data) => {
-    console.log("event", event)
+    // console.log("event", event)
 }
 
-const deleteFilesFromCloudinary = async(req, res, next) => {
+const deleteFilesFromCloudinary = async (req, res, next) => {
 
 }
 
@@ -91,7 +106,7 @@ export {
     registerUser,
     authUser,
     getAllUsers,
-    emitEvent, 
+    emitEvent,
     deleteFilesFromCloudinary
 }
 

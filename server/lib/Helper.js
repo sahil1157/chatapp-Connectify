@@ -1,4 +1,4 @@
-import { userSocketIDs } from "../Server.js"
+import { userSocketIDs } from "../Socketio.js"
 
 export const anotherUsersAvatar = (member, userid) => {
 

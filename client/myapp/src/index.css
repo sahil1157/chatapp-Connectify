@@ -4,7 +4,26 @@
 @tailwind components;
 @tailwind utilities;
 
-.div1{
-    box-shadow: 0px 0px 4px 0px #00000040;
+.div1 {
+  box-shadow: 0px 0px 4px 0px #00000040;
+}
 
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari, and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  
+  /* Hide scrollbar for IE, Edge, and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Hide scrollbar for modern browsers and other webkit-based browsers */
+  .no-scrollbar {
+    overflow: -moz-scrollbars-none; /* For older versions of Firefox */
+    overflow: -webkit-scrollbar;    /* For webkit-based browsers like Chrome, Safari */
+  }
 }

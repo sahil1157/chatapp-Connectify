@@ -8,7 +8,7 @@ import { singleAvatar } from "../middleware/Multer.js";
 router.post('/signup', singleAvatar, registerUser)
 router.post('/login', authUser)
 
-router.get('/chat', protection)
+router.use(protection)
 router.get('/chat', protection, getAllUsers)
 
 
