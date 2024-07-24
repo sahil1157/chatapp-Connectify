@@ -132,8 +132,10 @@ const SignupUI = () => {
 
     // sending user details to backed
     const SubmitUserDetails = async () => {
+        console.log("i entered here")
         try {
             const sendDatas = await api.post('/signup', inpVal);
+            console.log(sendDatas)
             if (sendDatas.ok)
                 setLoading(false)
             setError('')
@@ -182,8 +184,8 @@ const SignupUI = () => {
                             {!showPassword ? <FaEyeSlash /> : <FaEye />}
                         </span>
                     </div>
-                    {errors.password && <p className="text-sm font-sans font-[500] text-red-500 mt-1">{errors.password}</p>}
-                    {error && <p className="text-sm text-red-500 font-[500] font-sans -mt-1">{error}</p>}
+                    {/* {errors.password && <p className="text-sm font-sans font-[500] text-red-500 mt-1">{errors.password}</p>}
+                    {error && <p className="text-sm text-red-500 font-[500] font-sans -mt-1">{error}</p>} */}
                     <button type="submit" className='w-full font-sans h-12 rounded-lg bg-[#1877F2] hover:bg-[#1f6bcd] duration-300 text-white text-xl font-[700] flex justify-center items-center'>
                         {loading ? (
                             <div className="w-6 h-6 border-4 border-t-transparent border-white rounded-full animate-spin"></div>

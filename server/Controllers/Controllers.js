@@ -8,12 +8,11 @@ const registerUser = async (req, res, next) => {
     try {
         const avatar = req.file
 
-        if (!firstname || !lastname || !email || !password || !gender || !avatar)
+        if (!firstname || !lastname || !email || !password || !gender)
             return res.status(404).json({ valid: false, message: 'Please fill out all the fields before submitting' })
 
         const findEmailIfExist = await User.findOne({ email })
         if (findEmailIfExist) return res.status(400).json({ valid: false, message: "Email already registered" })
-
         const uploadResult = await cloudinary.uploader.upload(avatar.path);
         const hashPass = await bcrypt.hash(password, 10)
         const createNewUser = await User.create({
@@ -83,8 +82,9 @@ const getAllUsers = async (req, res, next) => {
         const findUsers = await User.find({
             ...keyword,
             _id: { $ne: req.user.id }
-        });
-        res.status(200).json({findUsers, myId} );
+        }).populate;
+        console.log(findUsers)
+        res.status(200).json({ findUsers, myId });
     } catch (error) {
         next(error);
     }

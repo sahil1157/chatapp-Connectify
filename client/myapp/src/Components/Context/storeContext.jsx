@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
-import { io } from 'socket.io-client'
+import { io, Socket } from 'socket.io-client'
 
 export const storeContext = createContext(null)
 
@@ -9,17 +9,18 @@ const StoreContextProvider = (props) => {
     const navigate = useNavigate()
     // getting messages of the user which i've clicked
     const [messages, getMessages] = useState('')
+    const [check, setCheck] = useState(false)
     const [currUser, setCurrUser] = useState({})
     const [loading, setLoading] = useState(false)
     const [myId, setMyId] = useState()
-    const [storeUserMessage,setStoreUSerMessage] = useState([])
+    const [storeUserMessage, setStoreUSerMessage] = useState([])
     const userId = myId
+    const [CurrentUserId, setCurrentUserId] = useState()
 
     const api = axios.create({
         baseURL: 'http://localhost:5000',
         withCredentials: true
     })
-
     useEffect(() => {
         const checkUserAuth = async () => {
             try {
@@ -53,35 +54,50 @@ const StoreContextProvider = (props) => {
 
     // Implementing socketio
 
+
     const socket = io('http://localhost:5000/')
 
     useEffect(() => {
         const handleConnect = () => {
-            if (myId) {
-                socket.emit("REGISTER_USER", { userId })
+            if (myId && messages) {
+                socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId })
             }
         }
-
         const handleNewMessage = (data) => {
             setStoreUSerMessage(x => [...x, data])
+            setCheck(true)
+        }
 
+        if (CurrentUserId) {
+            socket.on("LEAVE_ROOM", CurrentUserId)
         }
 
         socket.on("connect", handleConnect)
         socket.on("NEW_MESSAGE", handleNewMessage)
 
-         // Clean up the listener on component unmount
-         return () => {
+        // Clean up the listener on component unmount
+        return () => {
+            if (messages) {
+                socket.emit("JOIN_ROOM", messages)
+                setCurrentUserId(messages)
+            }
             socket.off("NEW_MESSAGE", handleNewMessage);
+            socket.off("connect", handleConnect);
         };
-    }, [currUser])
 
-    const sendMessage = ('NEW_MESSAGE', (message, chatId, userId) => {
+    }, [socket, messages, myId])
+
+    useEffect(() => {
+        // this is to clear the user's messages recieved so that duplicate datas wont appear
+        setStoreUSerMessage([])
+    }, [messages])
+
+
+    const sendMessage = (message, chatId, userId) => {
         if (socket) {
             socket.emit("NEW_MESSAGE", { message, chatId, userId })
         }
-
-    })
+    }
 
     useEffect(() => {
         if (!messages)
@@ -113,7 +129,6 @@ const StoreContextProvider = (props) => {
     }, [messages]);
 
 
-
     const contextValue = {
         api,
         sendMessage,
@@ -123,8 +138,12 @@ const StoreContextProvider = (props) => {
         currUser,
         loading,
         userId,
-        storeUserMessage
-        
+        storeUserMessage,
+        setStoreUSerMessage,
+        setCurrentUserId,
+        setCheck,
+        check, socket
+
 
     }
 

@@ -67,16 +67,23 @@ const initializeSocket = (server) => {
     // });
     io.on("connection", (Socket) => {
 
-        Socket.on("REGISTER_USER", ({ userId }) => {
+        Socket.on("REGISTER_USER", ({ userId, chatId }) => {
             userSocketIDs.set(userId, Socket.id)
+            Socket.join(chatId)
         })
 
-        Socket.on(NEW_MESSAGE, async ({ message, chatId, userId }) => {
+        Socket.on("LEAVE_ROOM", (chatId) => {
+            console.log(`${Socket.id} left the chat/room ${chatId}`)
+            Socket.leave(chatId)
+        })
 
-            const findChat = await Chat.findById(chatId)
+
+        Socket.on("NEW_MESSAGE", async ({ message, chatId, userId }) => {
+            const findChat = await Chat.findById([chatId])
             if (!findChat) {
                 return console.log("chat not found")
             }
+
 
             // creating a new message
             const createNewMessage = new Message({
@@ -88,15 +95,15 @@ const initializeSocket = (server) => {
             await createNewMessage.save()
             // emitting the message that was creating
 
-            findChat.members.forEach(memberId => {
-                const memberSocketId = userSocketIDs.get(memberId.toString());
-                if (memberSocketId) {
-                    io.to(memberSocketId).emit("NEW_MESSAGE", {
-                        message: createNewMessage,
-                        chatId
-                    });
-                }
-            });
+            io.to(chatId).emit("NEW_MESSAGE", {
+                message: createNewMessage,
+                chatId
+            })
+
+        });
+        Socket.on('disconnect', () => {
+            // console.log('A user disconnected:', Socket.id);
+            // Optionally, remove the socket ID from userSocketIDs here
         });
     });
 

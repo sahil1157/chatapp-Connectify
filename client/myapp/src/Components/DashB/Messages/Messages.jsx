@@ -22,11 +22,10 @@ const Messages = ({ currUser }) => {
     const [emojis, setEmojis] = useState(false);
     const { storeUserMessage, sendMessage, userId } = useContext(storeContext)
 
+
     const handleAddEmoji = (e) => {
         setMessage(prevMessage => prevMessage + e.emoji);
     };
-
-    // console.log(currUser)
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -52,25 +51,26 @@ const Messages = ({ currUser }) => {
     const storeUserMsg = storeUserMessage.map(x => ({
         content: x.message.content,
         sender: x.message.sender,
+        chatId: x.chatId,
         createdAt: x.message.createdAt
     }));
 
     const currUserMsg = currUser.message ? currUser.message.map(msg => ({
         content: msg.content,
         sender: msg.sender._id,
+        chatId: currUser.chatId,
         createdAt: msg.createdAt
     })) : [];
-
 
     // Merge messages and sort by timestamp
     const combinedMessages = [
         ...storeUserMsg,
-        ...currUserMsg
+        ...currUserMsg,
+        // setCurrentUserId.chatId
     ].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
 
-    const formatTime = (time) => {
-        return dayjs(time).tz('Asia/Kathmandu').format('h:mm A');
-    };
+    const filterItems = combinedMessages && combinedMessages.filter(x => x.chatId === currUser.chatId)
+
 
     return (
         <>
@@ -98,24 +98,26 @@ const Messages = ({ currUser }) => {
 
                 {/* mid section ie message section */}
                 <div className="flex h-full flex-col p-5 space-y-2">
-                    {combinedMessages && combinedMessages.map((msg, index) => (
-                        <div
-                            key={index}
-                            className={`flex flex-col space-y-1 w-full ${msg.sender === userId ? 'items-end' : 'items-start'} animate-fadeInUp`}
-                        >
+                    {filterItems && filterItems.map((msg, index) => {
+                        return (
                             <div
-                                className={`px-4 py-2 rounded-lg max-w-xs ${msg.sender === userId
-                                    ? 'bg-blue-500 text-white rounded-br-none'
-                                    : 'bg-gray-300 text-black rounded-bl-none'
-                                    }`}
+                                key={index}
+                                className={`flex flex-col space-y-1 w-full ${msg.sender === userId ? 'items-end' : 'items-start'} animate-fadeInUp`}
                             >
-                                <p>{msg.content}</p>
+                                <div
+                                    className={`px-4 py-2 rounded-lg max-w-xs ${msg.sender === userId
+                                        ? 'bg-blue-500 text-white rounded-br-none'
+                                        : 'bg-gray-300 text-black rounded-bl-none'
+                                        }`}
+                                >
+                                    <p>{msg.content}</p>
+                                </div>
+                                <span className="text-xs text-gray-400">
+                                    {dayjs(msg.createdAt).tz('Asia/Kathmandu').format('hh:mm A')}
+                                </span>
                             </div>
-                            <span className="text-xs text-gray-400">
-                                {dayjs(msg.createdAt).tz('Asia/Kathmandu').format('hh:mm A')}
-                            </span>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
                 {/* bottom section i.e sending message or textarea */}
                 <div className='h-[89px] bg-[#F7F9FD] items-center justify-between flex p-5 w-full border-t-[1px]'>
@@ -126,6 +128,7 @@ const Messages = ({ currUser }) => {
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
                                 type="text"
+                                autoFocus
                                 placeholder='Write a Message...'
                                 className='w-full h-[50px] pl-4 pr-12 rounded-lg border-[#EAF2FE] border-[1px] text-black placeholder:text-[#709CE6] bg-[#EAF2FE] outline-none'
                             />
