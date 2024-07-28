@@ -2,18 +2,16 @@ import React, { useContext } from 'react';
 import { storeContext } from "../../Components/Context/storeContext";
 import random from '../../images/Parrot.png';
 
-const ChatProp = () => {
-    const { users, getMessages, setCurrentUserId, latestDatas, userId } = useContext(storeContext);
+const ChatProp = ({setOpen}) => {
+    const { users, getMessages, setCurrentUserId, latestDatas } = useContext(storeContext);
+
 
     const getLatestMessage = (userId) => {
-        console.log("Finding latest message for userId:", userId);
 
         if (latestDatas && latestDatas.latestMessages) {
-            const latestMessageData = latestDatas.latestMessages.find(chat =>
-                chat.member && chat.member._id && chat.member._id.toString() === userId
+            const latestMessageData = latestDatas.latestMessages.find(x =>
+                x.members && x.members._id && x.members._id.toString() === userId
             );
-
-            console.log("Latest message data found:", latestMessageData);
 
             if (latestMessageData) {
                 const message = latestMessageData.latestmessages;
@@ -29,11 +27,8 @@ const ChatProp = () => {
         return { content: "Be the first to start a conversation", date: null };
     };
 
-    console.log("Users data:", users);
-    console.log("Latest datas:", latestDatas);
-
     return (
-        <div className='flex flex-col gap-7 overflow-y-auto no-scrollbar h-full'>
+        <div onClick={() => setOpen && setOpen(true)} className='flex gap-2 flex-col overflow-y-auto no-scrollbar h-full'>
             {users && users.findUsers && users.findUsers.map((user, index) => {
                 const latestMessage = getLatestMessage(user._id);
                 const messageDate = latestMessage.date ? new Date(latestMessage.date).toLocaleDateString() : '';
@@ -42,7 +37,7 @@ const ChatProp = () => {
                     <div
                         key={index}
                         onClick={() => { getMessages(user._id); setCurrentUserId(user._id); }}
-                        className='mt-2 cursor-pointer w-full flex flex-row justify-between gap-5'
+                        className='mt-2 p-2 cursor-pointer border-b-[1px] border-slate-200 w-full flex flex-row justify-between gap-5'
                     >
                         <div className='flex flex-row gap-5 w-full overflow-hidden'>
                             <div className='min-w-[48px] min-h-[48px] max-w-[48px] max-h-[48px] rounded-full overflow-hidden'>

@@ -89,24 +89,25 @@ const getAllUsers = async (req, res, next) => {
         })
 
         const userChats = await Chat.find({ members: myId })
-            .populate("members", "firstname _id avatar.url")
+            .populate("members", "firstname avatar.url _id")
             .populate({
-                path: 'latestmessages',
-                select: 'content sender createdAt',
+                path: "latestmessages",
+                select: "content sender createdAt",
                 populate: {
-                    path: 'sender',
-                    select: 'firstname _id avatar.url'
+                    path: "sender",
+                    select: "firstname _id avatar.url"
                 }
-            });
-
-        // console.log(userChats)
+            })
 
         const chatsWithLatestMessages = userChats.map(x => {
-            const member = x.members.find(member => member._id.toString() !== myId);
+            const membersWithoutMe = x.members.find(member => member._id.toString() !== myId)
 
             return {
                 chat: x._id,
-                member: member ? { _id: member._id, name: member.name } : null, 
+                members: membersWithoutMe ? {
+                    _id: membersWithoutMe._id,
+                    name: membersWithoutMe.firstname
+                } : null,
                 latestmessages: x.latestmessages ? {
                     content: x.latestmessages.content,
                     sender: x.latestmessages.sender ? {
@@ -115,10 +116,10 @@ const getAllUsers = async (req, res, next) => {
                         avatar: x.latestmessages.sender.avatar.url
                     } : null,
                     createdAt: x.latestmessages.createdAt
-                } : "Be the first to start a conversation"
-            };
-        });
-        // console.log(chatsWithLatestMessages)
+                } : "Be the first to star a conversation"
+            }
+        })
+
 
         res.status(200).json({ findUsers, myId, myDetails, latestMessages: chatsWithLatestMessages });
     } catch (error) {

@@ -10,18 +10,18 @@ import Messages from './Messages/Messages';
 import { storeContext } from '../Context/storeContext';
 import Loading from '../../Pages/Loading';
 
-const Chats = () => {
+const Chats = ({setOpen}) => {
     const { currUser, loading } = useContext(storeContext)
 
     return (
-        <div className='flex flex-row w-full'>
+        <div className={`flex md:flex-row w-full`}>
             {/* Sidebar */}
-            <div className='max-w-[430px] gap-6 w-full bg-[#F8FAFF] flex flex-col p-7 h-full'>
+            <div className='md:max-w-[430px] w-full gap-6 bg-[#F8FAFF] flex flex-col p-4 md:p-7'>
                 <div>
                     <p className='text-black text-2xl font-[600]'>Chats</p>
                 </div>
                 <div>
-                    <form className='relative w-full flex items-center' action=''>
+                <form className='relative w-full flex items-center' action=''>
                         <input
                             type='text'
                             placeholder='Search'
@@ -59,7 +59,6 @@ const Chats = () => {
                         </div>
                     )
             }
-            {/* Messages */}
 
         </div>
     );

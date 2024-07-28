@@ -10,12 +10,13 @@ import { storeContext } from "../../Context/storeContext"
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import Loading from '../../../Pages/Loading';
 
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const Messages = ({ currUser }) => {
+const Messages = ({ currUser, setOpen }) => {
     const emojiRef = useRef();
     const inputRef = useRef();
     const [message, setMessage] = useState("");
@@ -79,7 +80,11 @@ const Messages = ({ currUser }) => {
                 <div className='h-[89px] items-center flex-row justify-between flex p-5 w-full border-l-[1px] bg-[#F8FAFF]'>
                     <div className='w-full relative h-full flex flex-row gap-4'>
                         <div className='flex relative h-full items-center min-w-[48px] min-h-[48px] max-w-[48px] max-h-[48px] rounded-full'>
-                            <img src={currUser?.details?.avatar?.url} alt="" className='w-full h-full object-cover rounded-full' />
+                            {
+                                currUser?.details?.avatar?.url ? (
+                                    <img src={currUser?.details?.avatar?.url} alt="" className='w-full h-full object-cover rounded-full' />
+                                ) : <Loading />
+                            }
                             <p className='w-3 h-3 rounded-full bg-green-500 absolute right-[2px] bottom-0 z-50 border-2 border-white'></p>
                         </div>
 
