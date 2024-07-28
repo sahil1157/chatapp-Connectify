@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import parrot from '../../images/Parrot.png';
 import { AiOutlineMessage } from 'react-icons/ai';
 import { IoPeople } from 'react-icons/io5';
@@ -7,13 +7,15 @@ import { CiSettings } from 'react-icons/ci';
 import demo from '../../images/demo.jpg';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Chats from './Chats';
+import { storeContext } from '../Context/storeContext';
+import Loading from '../../Pages/Loading';
 
 
 const MainDash = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [track, setTrack] = useState(location.pathname);
-    console.log(track)
+    const { myDetails } = useContext(storeContext)
 
     useEffect(() => {
         setTrack(location.pathname);
@@ -64,9 +66,17 @@ const MainDash = () => {
                             ))}
                         </div>
                     </div>
-                    <button className='w-full flex justify-center'>
-                        <img src={demo} className='h-[48px] w-[48px] rounded-full' alt='' />
-                    </button>
+
+                    {
+                        myDetails && myDetails ? (
+                            <div className='flex w-full h-fit justify-center items-center'>
+                                <button className='flex justify-center h-[48px] w-[48px]'>
+                                    <img src={myDetails?.avatar?.url} className='rounded-full w-full h-full object-cover' alt='' />
+                                </button>
+                            </div>
+                        ) :
+                        <Loading/>
+}
                 </div>
             </div>
             {/* Renderimg Chats component or other components based on the route */}

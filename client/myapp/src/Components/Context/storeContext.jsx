@@ -16,6 +16,8 @@ const StoreContextProvider = (props) => {
     const [storeUserMessage, setStoreUSerMessage] = useState([])
     const userId = myId
     const [CurrentUserId, setCurrentUserId] = useState()
+    const [myDetails, setMydetails] = useState()
+    const [latestDatas,setLatestDatas] = useState()
 
     const api = axios.create({
         baseURL: 'http://localhost:5000',
@@ -34,6 +36,12 @@ const StoreContextProvider = (props) => {
         checkUserAuth()
     }, [])
 
+
+    const handleNewMessage = (data) => {
+        setStoreUSerMessage(x => [...x, data])
+        setCheck(true)
+    }
+
     // routes for getting the users...
     const [users, getUsers] = useState([])
 
@@ -42,7 +50,9 @@ const StoreContextProvider = (props) => {
             try {
                 await api.get("/chat")
                     .then(x => {
-                        getUsers(x.data.findUsers)
+                        getUsers(x.data)
+                        setMydetails(x.data.myDetails)
+                        setLatestDatas(x.data)
                         setMyId(x.data.myId)
                     })
             } catch (error) {
@@ -54,7 +64,6 @@ const StoreContextProvider = (props) => {
 
     // Implementing socketio
 
-
     const socket = io('http://localhost:5000/')
 
     useEffect(() => {
@@ -62,10 +71,6 @@ const StoreContextProvider = (props) => {
             if (myId && messages) {
                 socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId })
             }
-        }
-        const handleNewMessage = (data) => {
-            setStoreUSerMessage(x => [...x, data])
-            setCheck(true)
         }
 
         if (CurrentUserId) {
@@ -87,6 +92,7 @@ const StoreContextProvider = (props) => {
 
     }, [socket, messages, myId])
 
+
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear
         setStoreUSerMessage([])
@@ -95,7 +101,7 @@ const StoreContextProvider = (props) => {
 
     const sendMessage = (message, chatId, userId) => {
         if (socket) {
-            socket.emit("NEW_MESSAGE", { message, chatId, userId })
+            socket.emit("NEW_MESSAGE", { message, chatId, userId , messages})
         }
     }
 
@@ -128,7 +134,6 @@ const StoreContextProvider = (props) => {
         }
     }, [messages]);
 
-
     const contextValue = {
         api,
         sendMessage,
@@ -142,7 +147,11 @@ const StoreContextProvider = (props) => {
         setStoreUSerMessage,
         setCurrentUserId,
         setCheck,
-        check, socket
+        check,
+        socket,
+        myDetails,
+        latestDatas
+
 
 
     }

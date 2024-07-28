@@ -97,7 +97,7 @@ const Messages = ({ currUser }) => {
                 </div>
 
                 {/* mid section ie message section */}
-                <div className="flex h-full flex-col p-5 space-y-2">
+                <div className="flex h-full flex-col overflow-y-scroll p-5 space-y-2">
                     {filterItems && filterItems.map((msg, index) => {
                         return (
                             <div

@@ -2,6 +2,8 @@ import User from '../Models/UserModels.js'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { v2 as cloudinary } from 'cloudinary'
+import Message from '../Models/MessageModel.js'
+import Chat from '../Models/ChatModels.js'
 
 const registerUser = async (req, res, next) => {
     const { firstname, lastname, email, password, gender } = req.body
@@ -79,12 +81,46 @@ const getAllUsers = async (req, res, next) => {
             ]
         } : {};
 
+        const myDetails = await User.findById(myId).select("avatar.url firstname _id")
+
         const findUsers = await User.find({
             ...keyword,
             _id: { $ne: req.user.id }
-        }).populate;
-        console.log(findUsers)
-        res.status(200).json({ findUsers, myId });
+        })
+
+        const userChats = await Chat.find({ members: myId })
+            .populate("members", "firstname _id avatar.url")
+            .populate({
+                path: 'latestmessages',
+                select: 'content sender createdAt',
+                populate: {
+                    path: 'sender',
+                    select: 'firstname _id avatar.url'
+                }
+            });
+
+        // console.log(userChats)
+
+        const chatsWithLatestMessages = userChats.map(x => {
+            const member = x.members.find(member => member._id.toString() !== myId);
+
+            return {
+                chat: x._id,
+                member: member ? { _id: member._id, name: member.name } : null, // Adjust member object as needed
+                latestmessages: x.latestmessages ? {
+                    content: x.latestmessages.content,
+                    sender: x.latestmessages.sender ? {
+                        _id: x.latestmessages.sender._id,
+                        firstname: x.latestmessages.sender.firstname,
+                        avatar: x.latestmessages.sender.avatar.url
+                    } : null,
+                    createdAt: x.latestmessages.createdAt
+                } : "Be the first to start a conversation"
+            };
+        });
+        // console.log(chatsWithLatestMessages)
+
+        res.status(200).json({ findUsers, myId, myDetails, latestMessages: chatsWithLatestMessages });
     } catch (error) {
         next(error);
     }

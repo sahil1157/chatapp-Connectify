@@ -78,8 +78,9 @@ const initializeSocket = (server) => {
         })
 
 
-        Socket.on("NEW_MESSAGE", async ({ message, chatId, userId }) => {
-            const findChat = await Chat.findById([chatId])
+        Socket.on("NEW_MESSAGE", async ({ message, chatId, userId, currUserId }) => {
+
+            const findChat = await Chat.findById(chatId)
             if (!findChat) {
                 return console.log("chat not found")
             }
@@ -89,14 +90,22 @@ const initializeSocket = (server) => {
             const createNewMessage = new Message({
                 chat: chatId,
                 sender: userId,
-                content: message
-
+                content: message,
             })
-            await createNewMessage.save()
+
+            const savedMessage = await createNewMessage.save()
+            // storing the path of latest message
+            await Chat.findByIdAndUpdate(chatId, { latestmessages: savedMessage._id })
+
+            io.to(userId).emit("NEW_MESSAGE", {
+                message: savedMessage,
+                sender: userId,
+                chat: chatId
+            })
             // emitting the message that was creating
 
             io.to(chatId).emit("NEW_MESSAGE", {
-                message: createNewMessage,
+                message: savedMessage,
                 chatId
             })
 
