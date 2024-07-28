@@ -106,7 +106,7 @@ const getAllUsers = async (req, res, next) => {
 
             return {
                 chat: x._id,
-                member: member ? { _id: member._id, name: member.name } : null, // Adjust member object as needed
+                member: member ? { _id: member._id, name: member.name } : null, 
                 latestmessages: x.latestmessages ? {
                     content: x.latestmessages.content,
                     sender: x.latestmessages.sender ? {
