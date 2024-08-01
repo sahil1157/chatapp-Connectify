@@ -6,11 +6,13 @@ import Message from '../Models/MessageModel.js'
 import Chat from '../Models/ChatModels.js'
 
 const registerUser = async (req, res, next) => {
+
     const { firstname, lastname, email, password, gender } = req.body
+
     try {
         const avatar = req.file
 
-        if (!firstname || !lastname || !email || !password || !gender)
+        if (!firstname || !lastname || !email || !password || !gender || !avatar)
             return res.status(404).json({ valid: false, message: 'Please fill out all the fields before submitting' })
 
         const findEmailIfExist = await User.findOne({ email })

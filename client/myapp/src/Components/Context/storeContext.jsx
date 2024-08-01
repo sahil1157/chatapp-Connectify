@@ -56,13 +56,13 @@ const StoreContextProvider = (props) => {
                         setMyId(x.data.myId)
                     })
             } catch (error) {
-                console.log(error)
+                // console.log(error)
             }
         }
         fetchApi()
     }, [currUser])
 
-    // Implementing socketio
+    // Implementing socketio....
 
     const socket = io('http://localhost:5000/')
 
@@ -80,7 +80,6 @@ const StoreContextProvider = (props) => {
         socket.on("connect", handleConnect)
         socket.on("NEW_MESSAGE", handleNewMessage)
 
-        // Clean up the listener on component unmount
         return () => {
             if (messages) {
                 socket.emit("JOIN_ROOM", messages)

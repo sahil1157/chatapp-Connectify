@@ -3,12 +3,14 @@ import { storeContext } from '../Context/storeContext';
 import { useNavigate } from 'react-router-dom'
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from 'react-toastify'
-
+import img from '../../images/default3.jpg'
 const SignupUI = () => {
     const navigate = useNavigate();
     const { api } = useContext(storeContext);
     const [error, setError] = useState();
     const [loading, setLoading] = useState(false);
+    const [file, setFile] = useState()
+    const [showToUser, setShowToUser] = useState()
 
     const success = () => {
         toast.success("Signedin successful")
@@ -27,7 +29,22 @@ const SignupUI = () => {
         password: '',
         errorFromBackend: ""
     });
-    const [showPassword, setShowPassword] = useState(false); // State to manage password visibility
+    const [showPassword, setShowPassword] = useState(false);
+
+    // getting the images from user and again showing back....
+    const handleSubmitImage = (e) => {
+        setErrors('')
+        const file = e.target.files[0]
+        if (file) {
+            setFile(file)
+            const reader = new FileReader()
+
+            reader.onloadend = () => {
+                setShowToUser(reader.result)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -46,8 +63,10 @@ const SignupUI = () => {
     }
 
     const validateField = (name, value) => {
+
         let error = '';
 
+        if (!file) return error = "Picture is empty"
         switch (name) {
             case 'firstname':
             case 'lastname':
@@ -83,7 +102,10 @@ const SignupUI = () => {
         let formIsValid = true;
         const newErrors = {};
 
-        // Validate firstname
+        // Validating firstname
+        if (!file) {
+            newErrors.file = "profile is required for signup"
+        }
         if (inpVal.firstname.trim() === '') {
             newErrors.firstname = 'First name is required';
             formIsValid = false;
@@ -92,7 +114,7 @@ const SignupUI = () => {
             formIsValid = false;
         }
 
-        // Validate lastname
+        // Validating lastname
         if (inpVal.lastname.trim() === '') {
             newErrors.lastname = 'Last name is required';
             formIsValid = false;
@@ -101,7 +123,7 @@ const SignupUI = () => {
             formIsValid = false;
         }
 
-        // Validate email
+        // Validating email
         if (inpVal.email.trim() === '') {
             newErrors.email = 'Email is required';
             formIsValid = false;
@@ -110,32 +132,44 @@ const SignupUI = () => {
             formIsValid = false;
         }
 
-        // Validate password
+        // Validating password
         if (inpVal.password.trim() === '') {
             newErrors.password = 'Password is required';
             formIsValid = false;
-        } else if (inpVal.password.length < 8) {
+        } else if (inpVal.password.length < 6) {
             newErrors.password = 'Password must be at least 8 characters';
             formIsValid = false;
         }
 
-        // Update errors state
+        // Updating errors state
         setErrors(newErrors);
 
         if (formIsValid) {
             setInpVal(inpVal);
             SubmitUserDetails();
         } else {
+            setLoading(false)
             console.log('Form has validation errors. Please correct them.');
         }
     }
-
     // sending user details to backed
     const SubmitUserDetails = async () => {
-        console.log("i entered here")
         try {
-            const sendDatas = await api.post('/signup', inpVal);
-            console.log(sendDatas)
+
+            if (!file) return setLoading(false)
+            const formData = new FormData();
+
+            // sets file inside formData with key avatar....key-value pair
+            formData.append('avatar', file);
+
+            Object.keys(inpVal).forEach(key => {
+                formData.append(key, inpVal[key]);
+            });
+            const sendDatas = await api.post('/signup', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
             if (sendDatas.ok)
                 setLoading(false)
             setError('')
@@ -148,12 +182,41 @@ const SignupUI = () => {
     }
 
     return (
-        <div className='w-full sm:px-0 px-[4%] mt-12 mx-auto items-center flex flex-col gap-4'>
+        <div className='w-full sm:px-0 px-[4%] mx-auto mt-5 items-center flex flex-col gap-4'>
             <div>
                 <p className='sm:text-[38px] text-[28px] font-[700] font-sans text-[#1877F2]'>Connectify</p>
             </div>
             <div className='w-full p-3 sm:p-8 max-w-[490px] h-fit flex flex-col gap-4 bg-white shadow-2xl rounded-xl text-start border-[1px]'>
-                <p className='text-lg'>Create a new account</p>
+                <div className='w-full flex flex-row items-center justify-between gap-5'>
+                    <p className='text-lg flex items-center'>Create a new account</p>
+                    <div className='flex items-center lg:cursor-pointer flex-col gap-2'>
+                        <input
+                            type='file'
+                            id='fileInput'
+                            accept='image/jpeg, image/jpg, image/png'
+                            className='hidden'
+                            onChange={handleSubmitImage}
+                        />
+                        <label
+                            htmlFor='fileInput'
+                            className='min-w-[68px] border-[1px] min-h-[68px] max-w-[68px] max-h-[68px] rounded-full overflow-hidden cursor-pointer'
+                        >
+                            {showToUser && showToUser ? (
+                                <img
+                                    src={showToUser}
+                                    alt='Profile'
+                                    className='w-full h-full object-cover rounded-full'
+                                />
+                            ) : <img
+                                src={img}
+                                alt='Profile'
+                                className='w-full h-full object-cover rounded-full'
+                            />
+                            }
+                        </label>
+                    </div>
+
+                </div>
                 <form onSubmit={handleSubmit} className='mt-2 flex gap-3 flex-col'>
                     <div className="flex gap-3">
                         <div className="flex flex-col w-full">
@@ -184,8 +247,7 @@ const SignupUI = () => {
                             {!showPassword ? <FaEyeSlash /> : <FaEye />}
                         </span>
                     </div>
-                    {/* {errors.password && <p className="text-sm font-sans font-[500] text-red-500 mt-1">{errors.password}</p>}
-                    {error && <p className="text-sm text-red-500 font-[500] font-sans -mt-1">{error}</p>} */}
+                    {errors.file && <p className="text-sm font-sans font-[500] text-red-500 mt-1">{errors.file}</p>}
                     <button type="submit" className='w-full font-sans h-12 rounded-lg bg-[#1877F2] hover:bg-[#1f6bcd] duration-300 text-white text-xl font-[700] flex justify-center items-center'>
                         {loading ? (
                             <div className="w-6 h-6 border-4 border-t-transparent border-white rounded-full animate-spin"></div>

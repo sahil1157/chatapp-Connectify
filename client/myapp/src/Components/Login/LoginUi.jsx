@@ -99,6 +99,7 @@ const LoginUi = () => {
 
     const handleSubmitLoginDetails = async () => {
         try {
+            console.log(inpVal)
             const submitDetails = await api.post('/login', inpVal);
             if (submitDetails.data.valid)
                 success();
