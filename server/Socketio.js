@@ -11,7 +11,7 @@ const userSocketIDs = new Map();
 const initializeSocket = (server) => {
     const io = new Server(server, {
         cors: {
-            origin: 'https://chatapp-connectify.netlify.app/',
+            origin: 'https://chatapp-connectify.netlify.app',
             // origin: 'http://localhost:3000',
             methods: ['GET', 'POST', 'PUT'],
             credentials: true

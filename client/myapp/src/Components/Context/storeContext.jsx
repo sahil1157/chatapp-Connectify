@@ -9,7 +9,7 @@ const StoreContextProvider = (props) => {
     const navigate = useNavigate()
     // getting messages of the user which i've clicked
     const [messages, getMessages] = useState('')
-    const [loggedIn,setLoggedIn] = useState(false)
+    const [loggedIn, setLoggedIn] = useState(false)
     const [check, setCheck] = useState(false)
     const [currUser, setCurrUser] = useState({})
     const [loading, setLoading] = useState(false)
@@ -18,7 +18,7 @@ const StoreContextProvider = (props) => {
     const userId = myId
     const [CurrentUserId, setCurrentUserId] = useState()
     const [myDetails, setMydetails] = useState()
-    const [latestDatas,setLatestDatas] = useState()
+    const [latestDatas, setLatestDatas] = useState()
 
     const api = axios.create({
         baseURL: 'https://chatapp-connectify-c9k4.onrender.com',
@@ -38,7 +38,7 @@ const StoreContextProvider = (props) => {
         checkUserAuth()
     }, [])
 
-console.log(loggedIn)
+    console.log(loggedIn)
     const handleNewMessage = (data) => {
         setStoreUSerMessage(x => [...x, data])
         setCheck(true)
@@ -62,11 +62,13 @@ console.log(loggedIn)
             }
         }
         fetchApi()
-    }, [currUser,loggedIn])
+    }, [currUser, loggedIn])
 
     // Implementing socketio....
 
-    const socket = io('https://chatapp-connectify-c9k4.onrender.com')
+    const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
+        withCredentials: true
+    });
     // const socket = io('http://localhost:5000/')
 
     useEffect(() => {
@@ -103,7 +105,7 @@ console.log(loggedIn)
 
     const sendMessage = (message, chatId, userId) => {
         if (socket) {
-            socket.emit("NEW_MESSAGE", { message, chatId, userId , messages})
+            socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
         }
     }
 

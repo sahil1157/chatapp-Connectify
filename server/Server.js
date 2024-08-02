@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({
-    origin: 'https://chatapp-connectify.netlify.app/',
+    origin: 'https://chatapp-connectify.netlify.app',
     // origin: 'http://localhost:3000',
     credentials: true
 }));
