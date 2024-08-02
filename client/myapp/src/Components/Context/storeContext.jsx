@@ -21,7 +21,8 @@ const StoreContextProvider = (props) => {
     const [latestDatas,setLatestDatas] = useState()
 
     const api = axios.create({
-        baseURL: 'http://localhost:5000',
+        baseURL: 'https://chatapp-connectify-c9k4.onrender.com',
+        // baseURL: 'http://localhost:5000',
         withCredentials: true
     })
     useEffect(() => {
@@ -65,7 +66,8 @@ console.log(loggedIn)
 
     // Implementing socketio....
 
-    const socket = io('http://localhost:5000/')
+    const socket = io('https://chatapp-connectify-c9k4.onrender.com')
+    // const socket = io('http://localhost:5000/')
 
     useEffect(() => {
         const handleConnect = () => {
