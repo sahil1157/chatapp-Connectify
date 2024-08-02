@@ -9,6 +9,7 @@ const StoreContextProvider = (props) => {
     const navigate = useNavigate()
     // getting messages of the user which i've clicked
     const [messages, getMessages] = useState('')
+    const [loggedIn,setLoggedIn] = useState(false)
     const [check, setCheck] = useState(false)
     const [currUser, setCurrUser] = useState({})
     const [loading, setLoading] = useState(false)
@@ -36,7 +37,7 @@ const StoreContextProvider = (props) => {
         checkUserAuth()
     }, [])
 
-
+console.log(loggedIn)
     const handleNewMessage = (data) => {
         setStoreUSerMessage(x => [...x, data])
         setCheck(true)
@@ -60,7 +61,7 @@ const StoreContextProvider = (props) => {
             }
         }
         fetchApi()
-    }, [currUser])
+    }, [currUser,loggedIn])
 
     // Implementing socketio....
 
@@ -149,7 +150,8 @@ const StoreContextProvider = (props) => {
         check,
         socket,
         myDetails,
-        latestDatas
+        latestDatas,
+        setLoggedIn
 
 
 

@@ -7,7 +7,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const LoginUi = () => {
     const navigate = useNavigate();
-    const { api } = useContext(storeContext);
+    const { api , setLoggedIn} = useContext(storeContext);
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [getError, setGetError] = useState()
@@ -99,12 +99,12 @@ const LoginUi = () => {
 
     const handleSubmitLoginDetails = async () => {
         try {
-            console.log(inpVal)
             const submitDetails = await api.post('/login', inpVal);
             if (submitDetails.data.valid)
                 success();
             setGetError('')
             setLoading(false);
+            setLoggedIn(true)
             navigate("/mychats")
         } catch (error) {
             setLoading(false)
@@ -121,7 +121,7 @@ const LoginUi = () => {
             <div>
                 <p className='sm:text-[38px] text-[28px] font-[700] font-sans text-[#1877F2]'>Connectify</p>
             </div>
-            <div className='w-full p-3  sm:p-8 max-w-[400px] h-fit flex flex-col gap-4 bg-white shadow-2xl rounded-xl text-center border-[1px]'>
+            <div className='w-full p-3 sm:p-8 max-w-[400px] h-fit flex flex-col gap-4 bg-white shadow-2xl rounded-xl text-center border-[1px]'>
                 <p className='text-lg'>Log into Connectify</p>
                 <form onSubmit={handleSubmit} className='mt-2 text-start flex gap-3 flex-col'>
                     <input required type="email" placeholder='Email or phone number' className='placeholder:text-neutral-400 p-3 text-black outline-none w-full rounded-lg h-12 border-[1px] border-gray-300' name="email" value={inpVal.email} onChange={handleChange} onBlur={handleBlur} />
@@ -153,12 +153,18 @@ const LoginUi = () => {
                     <hr className="flex-grow border-t-1 items-center flex border-gray-300 mx-2" />
                 </div>
 
-                <div className='w-full flex items-center justify-center'>
+                <div className='w-full flex flex-col items-center justify-center'>
                     <button onClick={() => navigate('/signup')} className='w-fit p-3 rounded-lg bg-[#42b72a] text-white flex items-center duration-300 justify-center hover:bg-[#3ca527] h-12'>
                         Create new account
                     </button>
                 </div>
-
+                <div className='flex w-full justify-start items-start text-start mt-3 text-xs flex-col gap-1'>
+                    <p className='text-black text-sm'>for testing purpose, kindly use</p>
+                    <div className='flex flex-col'>
+                        <p className='text-gray-400 font-mono'>email : test@gmail.com</p>
+                        <p className='text-gray-400 font-mono'>password : test123</p>
+                    </div>
+                </div>
             </div>
         </div>
     );
