@@ -9,6 +9,7 @@ const StoreContextProvider = (props) => {
     const navigate = useNavigate()
     // getting messages of the user which i've clicked
     const [messages, getMessages] = useState('')
+    const [userMessage, setUserMessage] = useState()
     const [loggedIn, setLoggedIn] = useState(false)
     const [check, setCheck] = useState(false)
     const [currUser, setCurrUser] = useState({})
@@ -19,6 +20,7 @@ const StoreContextProvider = (props) => {
     const [CurrentUserId, setCurrentUserId] = useState()
     const [myDetails, setMydetails] = useState()
     const [latestDatas, setLatestDatas] = useState()
+    const [authLoading, setAuthLoading] = useState(true)
 
     const api = axios.create({
         baseURL: 'https://chatapp-connectify-c9k4.onrender.com',
@@ -30,20 +32,19 @@ const StoreContextProvider = (props) => {
             try {
                 const checkAuth = await api.get("/chat")
                 if (checkAuth)
-                    return false
+                    return setAuthLoading(false)
             } catch (error) {
+                setAuthLoading(false)
                 return navigate("/login")
             }
         }
         checkUserAuth()
     }, [])
 
-    console.log(loggedIn)
     const handleNewMessage = (data) => {
         setStoreUSerMessage(x => [...x, data])
         setCheck(true)
     }
-
     // routes for getting the users...
     const [users, getUsers] = useState([])
 
@@ -62,14 +63,14 @@ const StoreContextProvider = (props) => {
             }
         }
         fetchApi()
-    }, [currUser, loggedIn])
+    }, [currUser, loggedIn, userMessage])
 
     // Implementing socketio....
 
-    const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
-        withCredentials: true
-    });
-    // const socket = io('http://localhost:5000/')
+    // const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
+    //     withCredentials: true
+    // });
+    const socket = io('http://localhost:5000/')
 
     useEffect(() => {
         const handleConnect = () => {
@@ -94,7 +95,7 @@ const StoreContextProvider = (props) => {
             socket.off("connect", handleConnect);
         };
 
-    }, [socket, messages, myId])
+    }, [socket, messages, userMessage])
 
 
     useEffect(() => {
@@ -106,6 +107,7 @@ const StoreContextProvider = (props) => {
     const sendMessage = (message, chatId, userId) => {
         if (socket) {
             socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
+            setUserMessage(message)
         }
     }
 
@@ -128,7 +130,7 @@ const StoreContextProvider = (props) => {
                 )
                 setLoading(false)
             } catch (error) {
-                console.error('Error:', error.response ? error.response.data : error.message);
+                // console.error('Error:', error.response ? error.response.data : error.message);
                 setLoading(false)
             }
         };
@@ -137,6 +139,24 @@ const StoreContextProvider = (props) => {
             sendId();
         }
     }, [messages]);
+
+    // search functionality using fetched users
+    const [search, setSearch] = useState("")
+    const [searchedUsers, setSearchedUsers] = useState(users?.findUsers)
+
+    useEffect(() => {
+
+        if (users && users.findUsers) {
+            if (search.length > 0) {
+                const findUsers = users?.findUsers?.filter(x => x.firstname.toLowerCase().includes(search.toString().toLowerCase()))
+                return setSearchedUsers(findUsers)
+            }
+            else {
+                setSearchedUsers(users.findUsers)
+            }
+        }
+
+    }, [search, users])
 
     const contextValue = {
         api,
@@ -155,8 +175,11 @@ const StoreContextProvider = (props) => {
         socket,
         myDetails,
         latestDatas,
-        setLoggedIn
-
+        setLoggedIn,
+        setSearch,
+        searchedUsers,
+        authLoading,
+        CurrentUserId
 
 
     }

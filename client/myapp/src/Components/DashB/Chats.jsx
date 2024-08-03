@@ -10,8 +10,8 @@ import Messages from './Messages/Messages';
 import { storeContext } from '../Context/storeContext';
 import Loading from '../../Pages/Loading';
 
-const Chats = ({setOpen}) => {
-    const { currUser, loading } = useContext(storeContext)
+const Chats = ({ setOpen }) => {
+    const { currUser, loading, setSearch } = useContext(storeContext)
 
     return (
         <div className={`flex md:flex-row w-full`}>
@@ -21,8 +21,9 @@ const Chats = ({setOpen}) => {
                     <p className='text-black text-2xl font-[600]'>Chats</p>
                 </div>
                 <div>
-                <form className='relative w-full flex items-center' action=''>
+                    <form className='relative w-full flex items-center' action=''>
                         <input
+                        onChange={(e) => setSearch(e.target.value)}
                             type='text'
                             placeholder='Search'
                             className='p-4 bg-[#EAF2FE] placeholder:text-[#709CE6] outline-none text-lg flex items-center pl-12 pr-12 w-full rounded-3xl'
@@ -37,7 +38,7 @@ const Chats = ({setOpen}) => {
                         <hr className='mt-3 border-[#B4B4B4]' />
                     </div>
                     <Routes>
-                        <Route path='/' element={<ChatProp />} />
+                        <Route path='/' element={<ChatProp setOpen={setOpen} />} />
                         <Route path='/mypeople' element={<MyPeople />} />
                         <Route path='/call' element={<CallFriend />} />
                     </Routes>

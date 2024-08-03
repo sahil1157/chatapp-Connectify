@@ -40,7 +40,7 @@ const Messages = ({ currUser, setOpen }) => {
         };
     }, [emojiRef]);
 
-    // sending this message to backend
+    // sending this message to backend, first sending to sendMessage function which is inside storeContext
     const handleSubmit = (e) => {
         e.preventDefault()
         if (message.trim() && currUser.chatId && userId) {
@@ -63,7 +63,7 @@ const Messages = ({ currUser, setOpen }) => {
         createdAt: msg.createdAt
     })) : [];
 
-    // Merge messages and sort by timestamp
+    // Merging messages and sortting them by timestamp...
     const combinedMessages = [
         ...storeUserMsg,
         ...currUserMsg,
@@ -72,6 +72,13 @@ const Messages = ({ currUser, setOpen }) => {
 
     const filterItems = combinedMessages && combinedMessages.filter(x => x.chatId === currUser.chatId)
 
+    // this will auto scroll downwards as soon as a message is appeared inside useeffect's dependency
+    const chatContainerRef = useRef()
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    }, [storeUserMessage])
 
     return (
         <>
@@ -102,7 +109,7 @@ const Messages = ({ currUser, setOpen }) => {
                 </div>
 
                 {/* mid section ie message section */}
-                <div className="flex h-full flex-col overflow-y-scroll p-5 space-y-2">
+                <div ref={chatContainerRef} className="flex h-full flex-col overflow-y-auto p-5 space-y-2">
                     {filterItems && filterItems.map((msg, index) => {
                         return (
                             <div

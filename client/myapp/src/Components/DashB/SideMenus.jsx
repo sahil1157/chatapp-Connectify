@@ -15,7 +15,7 @@ const MainDash = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [track, setTrack] = useState(location.pathname);
-    const { myDetails,currUser } = useContext(storeContext)
+    const { myDetails, currUser } = useContext(storeContext)
     const [open, setOpen] = useState(false)
 
 
@@ -59,9 +59,9 @@ const MainDash = () => {
                         <div className='flex w-full items-center justify-center flex-col mt-4 gap-6'>
                             {ArrayIcons.map((icon, index) => (
                                 <button
-                                
+
                                     key={index}
-                                    onClick={() => {handleIconClick(icon.name); setOpen(false)}}
+                                    onClick={() => { handleIconClick(icon.name); setOpen(false) }}
                                     className={`flex items-center justify-center rounded-xl ${track === icon.name ? 'bg-[#5B96F7] text-white' : 'text-black'}`}
                                 >
                                     <div className='lg:h-[55px] lg:w-[55px] md:w-[49px] md:h-[49px] w-[42px] h-[42px] flex items-center justify-center'>{icon.logo}</div>
@@ -83,11 +83,15 @@ const MainDash = () => {
                 </div>
             </div>
             {/* Renderimg Chats component or other components based on the route */}
+
+            <div className='w-full h-full hidden md:flex flex-row'>
+                <Chats setOpen={setOpen} open={open} />
+            </div>
             {
-                !open && !open ? 
+                open ? <div className='w-full flex md:hidden h-full'>
+                    <Messages setOpen={setOpen} currUser={currUser} />
+                </div> : <div className='w-full h-full flex md:hidden flex-row'>
                     <Chats setOpen={setOpen} open={open} />
-                 : <div className='w-full flex md:hidden h-full'>
-                    <Messages setOpen = {setOpen} currUser={currUser} />
                 </div>
             }
         </div>

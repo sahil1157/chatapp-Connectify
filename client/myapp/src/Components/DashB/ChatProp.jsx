@@ -2,12 +2,12 @@ import React, { useContext } from 'react';
 import { storeContext } from "../../Components/Context/storeContext";
 import random from '../../images/Parrot.png';
 
-const ChatProp = ({setOpen}) => {
-    const { users, getMessages, setCurrentUserId, latestDatas } = useContext(storeContext);
+const ChatProp = ({ setOpen }) => {
+
+    const { getMessages, setCurrentUserId, latestDatas, searchedUsers } = useContext(storeContext);
 
 
     const getLatestMessage = (userId) => {
-
         if (latestDatas && latestDatas.latestMessages) {
             const latestMessageData = latestDatas.latestMessages.find(x =>
                 x.members && x.members._id && x.members._id.toString() === userId
@@ -27,9 +27,10 @@ const ChatProp = ({setOpen}) => {
         return { content: "Be the first to start a conversation", date: null };
     };
 
+
     return (
-        <div onClick={() => setOpen && setOpen(true)} className='flex gap-2 flex-col overflow-y-auto no-scrollbar h-full'>
-            {users && users.findUsers && users.findUsers.map((user, index) => {
+        <div onClick={() => setOpen(true)} className='flex gap-2 flex-col overflow-y-auto no-scrollbar h-full'>
+            {searchedUsers && searchedUsers.map((user, index) => {
                 const latestMessage = getLatestMessage(user._id);
                 const messageDate = latestMessage.date ? new Date(latestMessage.date).toLocaleDateString() : '';
 
@@ -53,13 +54,22 @@ const ChatProp = ({setOpen}) => {
                                     <p className='text-md font-bold text-black'>{user.lastname}</p>
                                 </div>
                                 <div className='flex justify-between w-full'>
-                                    <p className='text-xs text-grey-500 truncate'>
+                                  <p className='text-xs text-grey-500 truncate'>
                                         {latestMessage.sender ? `${latestMessage.sender}: ` : ''}{latestMessage.content}
                                     </p>
                                     <p className='text-xs text-grey-500'>
                                         {messageDate}
                                     </p>
                                 </div>
+                                {/* not a correct solution, working on it... */}
+                                {/* <div className='flex justify-between w-full'>
+                                    <p className={`text-xs truncate ${currUser && currUser?.details?._id.toString() !== CurrentUserId ? "text-grey-500" : "text-black font-[700] "}`}>
+                                        {latestMessage.sender ? `${latestMessage.sender}: ` : ''}{latestMessage.content}
+                                    </p>
+                                    <p className={`text-xs truncate ${currUser && currUser?.details?._id.toString() !== CurrentUserId ? "text-grey-500" : "text-black font-[700] "}`}>
+                                        {messageDate}
+                                    </p>
+                                </div> */}
                             </div>
                         </div>
                     </div>
@@ -70,3 +80,4 @@ const ChatProp = ({setOpen}) => {
 };
 
 export default ChatProp;
+
