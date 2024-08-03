@@ -10,7 +10,7 @@ const Routing = () => {
         <Route exact path='/signup' element={<Signup />} />
         <Route exact path='/login' element={<Login />} />
         <Route exact path='/' element={<Navigate to="/mychats" />} />
-        <Route path='/mychats/*' element={<DashB />} />
+        <Route exact path='/*' element={<DashB />} />
     </Routes>
     );
 };

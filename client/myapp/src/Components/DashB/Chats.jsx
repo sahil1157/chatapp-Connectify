@@ -14,7 +14,7 @@ const Chats = ({ setOpen }) => {
     const { currUser, loading, setSearch } = useContext(storeContext)
 
     return (
-        <div className={`flex md:flex-row w-full`}>
+        <div className={`flex md:flex-row gap-3 w-full`}>
             {/* Sidebar */}
             <div className='md:max-w-[430px] w-full gap-6 bg-[#F8FAFF] flex flex-col p-4 md:p-7'>
                 <div>
@@ -38,7 +38,7 @@ const Chats = ({ setOpen }) => {
                         <hr className='mt-3 border-[#B4B4B4]' />
                     </div>
                     <Routes>
-                        <Route path='/' element={<ChatProp setOpen={setOpen} />} />
+                        <Route path='/mychats' element={<ChatProp setOpen={setOpen} />} />
                         <Route path='/mypeople' element={<MyPeople />} />
                         <Route path='/call' element={<CallFriend />} />
                     </Routes>
@@ -47,7 +47,7 @@ const Chats = ({ setOpen }) => {
             {/* Default Message Placeholder */}
             {
                 currUser && !currUser.details ? (
-                    <div className='w-full hidden md:flex h-full flex-col gap-5 justify-center items-center'>
+                    <div className='w-full p-3 hidden md:flex h-full flex-col gap-5 justify-center items-center'>
                         <img src={image} alt='' />
                         <p className='font-[600] font-sans text-xl'>
                             Select a conversation or start a <span className='text-[#5B96F7]'>new one</span>
