@@ -67,10 +67,10 @@ const StoreContextProvider = (props) => {
 
     // Implementing socketio....
 
-    // const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
-    //     withCredentials: true
-    // });
-    const socket = io('http://localhost:5000/')
+    const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
+        withCredentials: true
+    });
+    // const socket = io('http://localhost:5000/')
 
     useEffect(() => {
         const handleConnect = () => {
