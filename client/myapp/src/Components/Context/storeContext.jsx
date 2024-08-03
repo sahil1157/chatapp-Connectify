@@ -95,7 +95,7 @@ const StoreContextProvider = (props) => {
             socket.off("connect", handleConnect);
         };
 
-    }, [socket, messages])
+    }, [socket, messages,userMessage])
 
 
     useEffect(() => {
@@ -108,6 +108,7 @@ const StoreContextProvider = (props) => {
         if (socket) {
             socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
             setUserMessage(message)
+            
         }
     }
 
