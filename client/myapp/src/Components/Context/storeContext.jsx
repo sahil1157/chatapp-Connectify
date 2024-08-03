@@ -95,7 +95,7 @@ const StoreContextProvider = (props) => {
             socket.off("connect", handleConnect);
         };
 
-    }, [socket, messages, userMessage])
+    }, [socket, messages])
 
 
     useEffect(() => {

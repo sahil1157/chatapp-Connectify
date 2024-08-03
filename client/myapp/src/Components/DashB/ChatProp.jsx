@@ -55,7 +55,7 @@ const ChatProp = ({ setOpen }) => {
                                 </div>
                                 <div className='flex justify-between w-full'>
                                   <p className='text-xs text-grey-500 truncate'>
-                                        {latestMessage.sender ? `${latestMessage.sender}: ` : ''}{latestMessage.content}
+                                        {latestMessage?.sender ? `${latestMessage.sender}: ` : ''}{latestMessage.content}
                                     </p>
                                     <p className='text-xs text-grey-500'>
                                         {messageDate}
