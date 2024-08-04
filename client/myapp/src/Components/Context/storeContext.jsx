@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
-import { io, Socket } from 'socket.io-client'
+import { io } from 'socket.io-client'
 
 export const storeContext = createContext(null)
 
@@ -59,7 +59,7 @@ const StoreContextProvider = (props) => {
                         setMyId(x.data.myId)
                     })
             } catch (error) {
-                // console.log(error)
+                console.log(error)
             }
         }
         fetchApi()
@@ -69,7 +69,7 @@ const StoreContextProvider = (props) => {
 
     const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
         withCredentials: true,
-    transports: ['websocket', 'polling'],
+        transports: ['websocket'],
     });
     // const socket = io('http://localhost:5000/')
 
