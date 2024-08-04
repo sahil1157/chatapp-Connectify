@@ -68,7 +68,8 @@ const StoreContextProvider = (props) => {
     // Implementing socketio....
 
     const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
-        withCredentials: true
+        withCredentials: true,
+    transports: ['websocket', 'polling'],
     });
     // const socket = io('http://localhost:5000/')
 
@@ -95,7 +96,7 @@ const StoreContextProvider = (props) => {
             socket.off("connect", handleConnect);
         };
 
-    }, [socket, messages,userMessage])
+    }, [socket, messages, myId, currUser?.chatId, CurrentUserId])
 
 
     useEffect(() => {
@@ -109,7 +110,7 @@ const StoreContextProvider = (props) => {
         if (socket) {
             socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
             setUserMessage(message)
-            
+
         }
     }
 
