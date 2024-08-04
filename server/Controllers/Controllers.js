@@ -83,7 +83,7 @@ const getAllUsers = async (req, res, next) => {
             ]
         } : {};
 
-        const myDetails = await User.findById(myId).select("avatar.url firstname _id")
+        const myDetails = await User.findById(myId).select("avatar.url firstname _id lastname")
 
         const findUsers = await User.find({
             ...keyword,
@@ -129,6 +129,25 @@ const getAllUsers = async (req, res, next) => {
     }
 };
 
+const Logout = (req, res, next) => {
+    const { RefreshToken, AccessToken } = req.cookies
+    try {
+        if (!RefreshToken && !AccessToken) {
+            return next({
+                message: "Error occured, please try again later",
+                status: 404
+            })
+        }
+        res.clearCookie("RefreshToken")
+        res.clearCookie("AccessToken")
+        res.status(200).json({ message: "logout successful", valid: true })
+    } catch (error) {
+        return next({
+            message: "Internal server error, please try again later",
+            status: 403
+        })
+    }
+}
 
 const emitEvent = (req, event, user, data) => {
     // console.log("event", event)
@@ -146,7 +165,8 @@ export {
     authUser,
     getAllUsers,
     emitEvent,
-    deleteFilesFromCloudinary
+    deleteFilesFromCloudinary,
+    Logout
 }
 
 

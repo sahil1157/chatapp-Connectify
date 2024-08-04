@@ -89,7 +89,7 @@ const StoreContextProvider = (props) => {
         return () => {
             if (messages) {
                 socket.emit("JOIN_ROOM", messages)
-                setCurrentUserId(messages)
+                // setCurrentUserId(messages)
             }
             socket.off("NEW_MESSAGE", handleNewMessage);
             socket.off("connect", handleConnect);
@@ -105,6 +105,7 @@ const StoreContextProvider = (props) => {
 
 
     const sendMessage = (message, chatId, userId) => {
+        setCurrentUserId(userId)
         if (socket) {
             socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
             setUserMessage(message)
