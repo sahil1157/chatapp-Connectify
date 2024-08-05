@@ -23,11 +23,11 @@ const Chats = ({ setOpen, track }) => {
     const checkRoute = location === "/myprofile"
 
     return (
-        <div className={`flex bg-[#F8FAFF] md:flex-row gap-3 w-full`}>
+        <div className={`flex  md:flex-row gap-3 w-full`}>
             {/* Sidebar */}
             {
                 checkRoute ? <IndexMyProfile /> :
-                    <div className='md:max-w-[430px] w-full gap-6 bg-[#F8FAFF] flex flex-col p-4 md:p-7'>
+                    <div className='md:max-w-[430px] w-full gap-6 flex flex-col p-4 md:p-7'>
                         <div>
                             <p className='text-black text-2xl font-[600]'>Chats</p>
                         </div>

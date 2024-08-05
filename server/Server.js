@@ -16,7 +16,7 @@ connectDB();
 // Initializing Express app
 const app = express();
 const port = process.env.PORT || 5000;
-const server = createServer(app);
+// const server = createServer(app);
 
 // Middleware
 app.use(bodyParser.json());
@@ -32,14 +32,13 @@ app.use(cors({
 app.use('/', router);
 app.use("/chat", chatRoutes);
 
-// Initialize Socket.io
-const io = initializeSocket(server);
-
 // Error middleware
 app.use(errorMiddleware);
 
 // Start server
-server.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(colors.red.bold(`Server is running on port ${port}`));
 });
 
+// Initialize Socket.io
+const io = initializeSocket(server);

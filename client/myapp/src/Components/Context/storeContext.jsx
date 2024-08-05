@@ -34,6 +34,7 @@ const StoreContextProvider = (props) => {
                 if (checkAuth)
                     return setAuthLoading(false)
             } catch (error) {
+                // console.log(error)
                 setAuthLoading(false)
                 return navigate("/login")
             }
@@ -41,10 +42,7 @@ const StoreContextProvider = (props) => {
         checkUserAuth()
     }, [])
 
-    const handleNewMessage = (data) => {
-        setStoreUSerMessage(x => [...x, data])
-        setCheck(true)
-    }
+
     // routes for getting the users...
     const [users, getUsers] = useState([])
 
@@ -59,7 +57,7 @@ const StoreContextProvider = (props) => {
                         setMyId(x.data.myId)
                     })
             } catch (error) {
-                console.log(error)
+                // console.log(error)
             }
         }
         fetchApi()
@@ -71,13 +69,19 @@ const StoreContextProvider = (props) => {
         withCredentials: true,
         transports: ['websocket'],
     });
-    // const socket = io('http://localhost:5000/')
+    // const socket = io('http://localhost:5000')
+    // console.log(currUser)
 
     useEffect(() => {
         const handleConnect = () => {
             if (myId && messages) {
                 socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId })
             }
+        }
+
+        const handleNewMessage = (data) => {
+            setStoreUSerMessage(x => [...x, data])
+            setCheck(true)
         }
 
         if (CurrentUserId) {
@@ -90,14 +94,13 @@ const StoreContextProvider = (props) => {
         return () => {
             if (messages) {
                 socket.emit("JOIN_ROOM", messages)
-                // setCurrentUserId(messages)
+                setCurrentUserId(messages)
             }
             socket.off("NEW_MESSAGE", handleNewMessage);
             socket.off("connect", handleConnect);
         };
 
-    }, [socket, messages, myId, currUser?.chatId, CurrentUserId])
-
+    }, [socket, userMessage, messages, CurrentUserId, myId, currUser.chatId])
 
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear
@@ -133,6 +136,7 @@ const StoreContextProvider = (props) => {
                 )
                 setLoading(false)
             } catch (error) {
+                // console.log(error)
                 // console.error('Error:', error.response ? error.response.data : error.message);
                 setLoading(false)
             }
