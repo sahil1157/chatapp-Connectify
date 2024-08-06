@@ -25,6 +25,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({
     origin: 'https://chatapp-connectify.netlify.app',
     // origin: 'http://localhost:3000',
+
     credentials: true
 }));
 
@@ -38,7 +39,7 @@ app.use(errorMiddleware);
 
 
 // Start server
- const server = app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(colors.red.bold(`Server is running on port ${port}`));
 });
 

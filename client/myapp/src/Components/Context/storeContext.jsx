@@ -67,7 +67,10 @@ const StoreContextProvider = (props) => {
 
     const socket = io('https://chatapp-connectify-c9k4.onrender.com', {
         withCredentials: true,
-        transports: ['websocket'],
+        reconnection: true,
+        path: "/socket",
+        transports: ['websocket', 'polling'],
+        reconnectionAttempts: 5
     });
     // const socket = io('http://localhost:5000')
 
@@ -164,6 +167,10 @@ const StoreContextProvider = (props) => {
         }
 
     }, [search, users])
+
+
+    console.log("Storing new messages from user", storeUserMessage)
+    console.log("This is a curruser message", currUser)
 
     const contextValue = {
         api,

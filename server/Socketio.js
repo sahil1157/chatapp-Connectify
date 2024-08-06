@@ -10,9 +10,12 @@ const userSocketIDs = new Map();
 
 const initializeSocket = (server) => {
     const io = new Server(server, {
+        allowEIO3: true,
+        path: "/socket",
+        wssEngine: ['ws', 'wss'],
+        transports: ['websocket', "polling"],
         cors: {
-            origin: 'https://chatapp-connectify.netlify.app',
-            // origin: 'http://localhost:3000',
+            origin: ["http://localhost:3000", "https://chatapp-connectify.netlify.app"],
             methods: ['GET', 'POST', 'PUT'],
             credentials: true
         }
@@ -80,37 +83,43 @@ const initializeSocket = (server) => {
 
 
         Socket.on("NEW_MESSAGE", async ({ message, chatId, userId, currUserId }) => {
+            try {
+                console.log("inside NEW_MESSAGE")
+                const findChat = await Chat.findById(chatId)
+                if (!findChat) {
+                    return console.log("chat not found")
+                }
 
-            const findChat = await Chat.findById(chatId)
-            if (!findChat) {
-                return console.log("chat not found")
+
+                // creating a new message
+                const createNewMessage = new Message({
+                    chat: chatId,
+                    sender: userId,
+                    content: message,
+                })
+                console.log("Created Newmessage")
+
+                const savedMessage = await createNewMessage.save()
+                // storing the path of latest message
+                await Chat.findByIdAndUpdate(chatId, { latestmessages: savedMessage._id })
+
+                io.to(userId).emit("NEW_MESSAGE", {
+                    message: savedMessage,
+                    sender: userId,
+                    chat: chatId
+                })
+                // emitting the message that was created..
+
+                io.to(chatId).emit("NEW_MESSAGE", {
+                    message: savedMessage,
+                    chatId
+                })
+            } catch (error) {
+                console.log(error)
             }
 
-
-            // creating a new message
-            const createNewMessage = new Message({
-                chat: chatId,
-                sender: userId,
-                content: message,
-            })
-
-            const savedMessage = await createNewMessage.save()
-            // storing the path of latest message
-            await Chat.findByIdAndUpdate(chatId, { latestmessages: savedMessage._id })
-
-            io.to(userId).emit("NEW_MESSAGE", {
-                message: savedMessage,
-                sender: userId,
-                chat: chatId
-            })
-            // emitting the message that was created..
-
-            io.to(chatId).emit("NEW_MESSAGE", {
-                message: savedMessage,
-                chatId
-            })
-
         });
+        // console.log("Everything done. success")
         Socket.on('disconnect', () => {
             // console.log('A user disconnected:', Socket.id);
         });
