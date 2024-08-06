@@ -57,7 +57,7 @@ const StoreContextProvider = (props) => {
                         setMyId(x.data.myId)
                     })
             } catch (error) {
-                // console.log(error)
+                console.log(error)
             }
         }
         fetchApi()
@@ -70,7 +70,6 @@ const StoreContextProvider = (props) => {
         transports: ['websocket'],
     });
     // const socket = io('http://localhost:5000')
-    // console.log(currUser)
 
     useEffect(() => {
         const handleConnect = () => {
@@ -80,6 +79,7 @@ const StoreContextProvider = (props) => {
         }
 
         const handleNewMessage = (data) => {
+            console.log("hey i am here", data)
             setStoreUSerMessage(x => [...x, data])
             setCheck(true)
         }
@@ -100,7 +100,7 @@ const StoreContextProvider = (props) => {
             socket.off("connect", handleConnect);
         };
 
-    }, [socket, userMessage, messages, CurrentUserId, myId, currUser.chatId])
+    }, [socket, userMessage])
 
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear
@@ -136,7 +136,7 @@ const StoreContextProvider = (props) => {
                 )
                 setLoading(false)
             } catch (error) {
-                // console.log(error)
+                console.log(error)
                 // console.error('Error:', error.response ? error.response.data : error.message);
                 setLoading(false)
             }

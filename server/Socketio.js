@@ -103,7 +103,7 @@ const initializeSocket = (server) => {
                 sender: userId,
                 chat: chatId
             })
-            // emitting the message that was creating
+            // emitting the message that was created..
 
             io.to(chatId).emit("NEW_MESSAGE", {
                 message: savedMessage,
@@ -113,7 +113,6 @@ const initializeSocket = (server) => {
         });
         Socket.on('disconnect', () => {
             // console.log('A user disconnected:', Socket.id);
-            // Optionally, remove the socket ID from userSocketIDs here
         });
     });
 

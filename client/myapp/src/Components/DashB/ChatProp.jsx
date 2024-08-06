@@ -3,7 +3,7 @@ import { storeContext } from "../../Components/Context/storeContext";
 import random from '../../images/Parrot.png';
 
 const ChatProp = ({ setOpen }) => {
-    const { getMessages, setCurrentUserId, latestDatas, searchedUsers, currUser, CurrentUserId } = useContext(storeContext);
+    const { getMessages, setCurrentUserId, latestDatas, searchedUsers, currUser } = useContext(storeContext);
 
     const getLatestMessage = (userId) => {
         if (latestDatas && latestDatas.latestMessages) {
