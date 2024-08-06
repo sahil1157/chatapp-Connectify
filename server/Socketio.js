@@ -11,7 +11,7 @@ const userSocketIDs = new Map();
 const initializeSocket = (server) => {
     const io = new Server(server, {
         allowEIO3: true,
-        path: "/socket",
+        // path: "/socket",
         wssEngine: ['ws', 'wss'],
         transports: ['websocket', "polling"],
         cors: {

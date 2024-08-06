@@ -16,7 +16,7 @@ connectDB();
 // Initializing Express app
 const app = express();
 const port = process.env.PORT || 5000;
-// const server = createServer(app);
+const server = createServer(app);
 
 // Middleware
 app.use(bodyParser.json());
@@ -25,7 +25,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({
     origin: 'https://chatapp-connectify.netlify.app',
     // origin: 'http://localhost:3000',
-
     credentials: true
 }));
 
@@ -36,12 +35,12 @@ app.use("/chat", chatRoutes);
 // Error middleware
 app.use(errorMiddleware);
 
-
+// Initialize Socket.io
+const io = initializeSocket(server);
 
 // Start server
-const server = app.listen(port, () => {
+server.listen(port, () => {
     console.log(colors.red.bold(`Server is running on port ${port}`));
 });
 
-// Initialize Socket.io
-const io = initializeSocket(server);
+
