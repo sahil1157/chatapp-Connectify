@@ -35,8 +35,10 @@ app.use("/chat", chatRoutes);
 // Error middleware
 app.use(errorMiddleware);
 
+
+
 // Start server
-const server = app.listen(port, () => {
+ const server = app.listen(port, () => {
     console.log(colors.red.bold(`Server is running on port ${port}`));
 });
 

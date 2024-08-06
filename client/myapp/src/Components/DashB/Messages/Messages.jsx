@@ -22,6 +22,7 @@ const Messages = ({ currUser, setOpen }) => {
     const [message, setMessage] = useState("");
     const [emojis, setEmojis] = useState(false);
     const { storeUserMessage, sendMessage, userId } = useContext(storeContext)
+    console.log("storeUserMessage", storeUserMessage)
 
 
     const handleAddEmoji = (e) => {
@@ -79,6 +80,8 @@ const Messages = ({ currUser, setOpen }) => {
             chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
         }
     }, [storeUserMessage])
+
+    console.log("combinedMessages", combinedMessages)
 
     return (
         <>
