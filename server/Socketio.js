@@ -12,7 +12,7 @@ const initializeSocket = (server) => {
     const io = new Server(server, {
         allowEIO3: true,
         // path: "/socket",
-        wssEngine: ['ws', 'wss'],
+        // wssEngine: ['ws', 'wss'],
         transports: ['websocket', "polling"],
         cors: {
             origin: ["http://localhost:3000", "https://chatapp-connectify.netlify.app"],
