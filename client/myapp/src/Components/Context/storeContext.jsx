@@ -70,7 +70,7 @@ const StoreContextProvider = (props) => {
     const socket = io('https://chatapp-connectify.onrender.com', {
         withCredentials: true,
         reconnection: true,
-        path: "/socket",
+        // path: "/socket",
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5
     });
