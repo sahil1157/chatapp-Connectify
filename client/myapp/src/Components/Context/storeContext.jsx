@@ -66,17 +66,14 @@ const StoreContextProvider = (props) => {
 
     // Implementing socketio....
 
-
     const socket = io('https://chatapp-connectify.onrender.com', {
         withCredentials: true,
-        reconnection: true,
-        // path: "/socket",
-        transports: ['websocket', 'polling'],
-        reconnectionAttempts: 5
+        // reconnection : true,
+        // path : "/socket"
+        // transports: ['websocket', 'polling'],
+        // reconnectionAttempts : 5
     });
     // const socket = io('http://localhost:5000')
-    console.log(socket)
-
     useEffect(() => {
         const handleConnect = () => {
             if (myId && messages) {
@@ -106,10 +103,11 @@ const StoreContextProvider = (props) => {
             socket.off("connect", handleConnect);
         };
 
-    }, [socket, userMessage])
+    }, [userMessage])
 
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear
+        console.log("setusr has been clered")
         setStoreUSerMessage([])
     }, [messages])
 
@@ -172,8 +170,10 @@ const StoreContextProvider = (props) => {
     }, [search, users])
 
 
-    console.log("Storing new messages from user", storeUserMessage)
+    console.log("socketio message", storeUserMessage)
     console.log("This is a curruser message", currUser)
+    console.log("Socketio", socket)
+
 
     const contextValue = {
         api,
