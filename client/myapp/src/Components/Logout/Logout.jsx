@@ -38,7 +38,7 @@ const Logout = () => {
     }
 
     return (
-        <dialog id='dialog' ref={dialogRef} className='h-fit md:max-w-[580px] outline-none backdrop-blur-[12px] backdrop-brightness-200 min-w-[250px]'>
+        <dialog id='dialog' ref={dialogRef} className='h-fit rounded-xl p-3 md:max-w-[580px] outline-none backdrop-blur-[12px] backdrop-brightness-50 min-w-[250px]'>
             <button onClick={handleClose} className='p-3 outline-none justify-end items-end flex text-2xl text-gray-500 hover:text-gray-700'>
                 <RxCross1 />
             </button>

@@ -67,42 +67,42 @@ const StoreContextProvider = (props) => {
 
     const socket = io("https://chatapp-connectify.onrender.com", {
         withCredentials: true,
-        transports: ['websocket', "polling"],
     });
+    
     // const socket = io('http://localhost:5000', {
     //     withCredentials: true
     // })
+
     useEffect(() => {
         const handleConnect = () => {
-            if (myId && messages) {
-                socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId })
+            if (myId && currUser.chatId) {
+                socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId });
             }
-        }
+        };
 
         const handleNewMessage = (data) => {
-            console.log("hey i am here", data)
-            setStoreUSerMessage(x => [...x, data])
-            setCheck(true)
+            console.log("New message received", data);
+            setStoreUSerMessage((prevMessages) => [...prevMessages, data]);
+            setCheck(true);
+        };
+
+        socket.on("connect", handleConnect);
+        socket.on("NEW_MESSAGE", handleNewMessage);
+
+        if (messages) {
+            socket.emit("JOIN_ROOM", messages);
+            setCurrentUserId(messages);
         }
 
-        socket.on("connect", handleConnect)
-        socket.on("NEW_MESSAGE", handleNewMessage)
-
         return () => {
-            if (messages) {
-                socket.emit("JOIN_ROOM", messages)
-                setCurrentUserId(messages)
-            }
-
             socket.off("NEW_MESSAGE", handleNewMessage);
             socket.off("connect", handleConnect);
 
             if (CurrentUserId) {
-                socket.on("LEAVE_ROOM", CurrentUserId)
+                socket.emit("LEAVE_ROOM", CurrentUserId);
             }
         };
-
-    }, [userMessage, currUser, messages])
+    }, [CurrentUserId, userMessage]);
 
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear

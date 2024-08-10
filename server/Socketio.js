@@ -1,8 +1,4 @@
-import { Server, Socket } from "socket.io";
-import colors from 'colors';
-import { NEW_MESSAGE, NEW_MESSAGE_ALERT } from "./Constants/emit.js";
-import { v4 as uuid } from 'uuid';
-import { getSockets } from "./lib/Helper.js";
+import { Server } from "socket.io";
 import Chat from "./Models/ChatModels.js";
 import Message from "./Models/MessageModel.js";
 
@@ -77,14 +73,14 @@ const initializeSocket = (server) => {
         })
 
         Socket.on("LEAVE_ROOM", (chatId) => {
-            console.log(`${Socket.id} left the chat/room ${chatId}`)
+            // console.log(`${Socket.id} left the chat/room ${chatId}`)
             Socket.leave(chatId)
         })
 
 
-        Socket.on("NEW_MESSAGE", async ({ message, chatId, userId, currUserId }) => {
+        Socket.on("NEW_MESSAGE", async ({ message, chatId, userId }) => {
             try {
-                console.log("inside NEW_MESSAGE")
+                // console.log("inside NEW_MESSAGE")
                 const findChat = await Chat.findById(chatId)
                 if (!findChat) {
                     return console.log("chat not found")
@@ -97,7 +93,7 @@ const initializeSocket = (server) => {
                     sender: userId,
                     content: message,
                 })
-                console.log("Created Newmessage")
+                // console.log("Created Newmessage")
 
                 const savedMessage = await createNewMessage.save()
                 // storing the path of latest message
