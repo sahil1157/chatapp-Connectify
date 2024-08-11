@@ -23,8 +23,8 @@ const StoreContextProvider = (props) => {
     const [authLoading, setAuthLoading] = useState(true)
 
     const api = axios.create({
-        baseURL: 'https://chatapp-connectify.onrender.com',
-        // baseURL: 'http://localhost:5000',
+        // baseURL: 'https://chatapp-connectify.onrender.com',
+        baseURL: 'http://localhost:5000',
         withCredentials: true
     })
     useEffect(() => {
@@ -65,15 +65,16 @@ const StoreContextProvider = (props) => {
 
     // Implementing socketio....
 
-    const socket = io("https://chatapp-connectify.onrender.com", {
+    const socket = io("https://chatapp-connectify.onrender.com/", {
         withCredentials: true,
     });
-    
+
     // const socket = io('http://localhost:5000', {
     //     withCredentials: true
     // })
 
     useEffect(() => {
+        console.log("I am here")
         const handleConnect = () => {
             if (myId && currUser.chatId) {
                 socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId });
@@ -102,7 +103,7 @@ const StoreContextProvider = (props) => {
                 socket.emit("LEAVE_ROOM", CurrentUserId);
             }
         };
-    }, [CurrentUserId, userMessage]);
+    }, [userMessage,currUser]);
 
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear
@@ -121,6 +122,7 @@ const StoreContextProvider = (props) => {
     }
 
     useEffect(() => {
+        console.log('hey i ran')
         if (!messages)
             return console.log('no users')
         const sendId = async () => {

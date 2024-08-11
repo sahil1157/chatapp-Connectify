@@ -5,6 +5,8 @@ import random from '../../images/Parrot.png';
 const ChatProp = ({ setOpen }) => {
     const { getMessages, setCurrentUserId, latestDatas, searchedUsers, currUser } = useContext(storeContext);
 
+    // console.log("latestDatas", latestDatas)
+
     const getLatestMessage = (userId) => {
         if (latestDatas && latestDatas.latestMessages) {
             const latestMessageData = latestDatas.latestMessages.find(x =>
