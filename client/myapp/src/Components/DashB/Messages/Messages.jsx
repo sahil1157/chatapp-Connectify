@@ -11,6 +11,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import Loading from '../../../Pages/Loading';
+import SmallLoading from '../../../Pages/SmallLoading';
 
 
 dayjs.extend(utc);
@@ -21,7 +22,7 @@ const Messages = ({ currUser, setOpen }) => {
     const inputRef = useRef();
     const [message, setMessage] = useState("");
     const [emojis, setEmojis] = useState(false);
-    const { storeUserMessage, sendMessage, userId } = useContext(storeContext)
+    const { storeUserMessage, sendMessage, check, userId } = useContext(storeContext)
 
 
     const handleAddEmoji = (e) => {
@@ -165,8 +166,10 @@ const Messages = ({ currUser, setOpen }) => {
                                 )}
                             </div>
                         </div>
-                        <button type="submit" className='bg-[#5B96F7] w-12 h-12 text-white p-3 rounded-lg'>
-                            <BsSend size={20} />
+                        <button type="submit" className='bg-[#5B96F7] flex items-center justify-center w-12 h-12 text-white p-3 rounded-lg'>
+                            {
+                                !check && !check ? <BsSend size={20} /> : <SmallLoading />
+                            }
                         </button>
                     </form>
                 </div>

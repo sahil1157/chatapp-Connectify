@@ -170,7 +170,7 @@ const SignupUI = () => {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-            if (sendDatas.ok)
+            if (sendDatas)
                 setLoading(false)
             setError('')
             success()

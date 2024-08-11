@@ -61,7 +61,7 @@ const StoreContextProvider = (props) => {
             }
         }
         fetchApi()
-    }, [currUser, loggedIn,userMessage])
+    }, [currUser, loggedIn, userMessage])
 
     // Implementing socketio....
 
@@ -74,7 +74,6 @@ const StoreContextProvider = (props) => {
     // })
 
     const [isConnected, setIsConnected] = useState(socket.connected);
-    console.log(isConnected)
 
     useEffect(() => {
 
@@ -90,9 +89,8 @@ const StoreContextProvider = (props) => {
         };
 
         const handleNewMessage = (data) => {
-            console.log("New message received", data);
             setStoreUSerMessage((prevMessages) => [...prevMessages, data]);
-            setCheck(true);
+            setCheck(false);
         };
 
         socket.on("connect", handleConnect);
@@ -117,13 +115,13 @@ const StoreContextProvider = (props) => {
 
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear
-        console.log("setusr has been clered")
         setStoreUSerMessage([])
     }, [messages])
 
 
     const sendMessage = (message, chatId, userId) => {
         setCurrentUserId(userId)
+        setCheck(true)
         if (socket) {
             socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
             setUserMessage(message)
@@ -132,7 +130,6 @@ const StoreContextProvider = (props) => {
     }
 
     useEffect(() => {
-        console.log('hey i ran')
         if (!messages)
             return console.log('no users')
         const sendId = async () => {
@@ -179,12 +176,6 @@ const StoreContextProvider = (props) => {
         }
 
     }, [search, users])
-
-
-    console.log("socketio message", storeUserMessage)
-    console.log("This is a curruser message", currUser)
-    console.log("Socketio", socket)
-
 
     const contextValue = {
         api,
