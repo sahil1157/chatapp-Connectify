@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useMemo, useState } from "react";
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
 import { io } from 'socket.io-client'
@@ -23,8 +23,8 @@ const StoreContextProvider = (props) => {
     const [authLoading, setAuthLoading] = useState(true)
 
     const api = axios.create({
-        // baseURL: 'https://chatapp-connectify.onrender.com',
-        baseURL: 'http://localhost:5000',
+        baseURL: 'https://chatapp-connectify.onrender.com',
+        // baseURL: 'http://localhost:5000',
         withCredentials: true
     })
     useEffect(() => {
@@ -61,7 +61,7 @@ const StoreContextProvider = (props) => {
             }
         }
         fetchApi()
-    }, [currUser, loggedIn, userMessage])
+    }, [currUser, loggedIn,userMessage])
 
     // Implementing socketio....
 
@@ -73,11 +73,19 @@ const StoreContextProvider = (props) => {
     //     withCredentials: true
     // })
 
+    const [isConnected, setIsConnected] = useState(socket.connected);
+    console.log(isConnected)
+
     useEffect(() => {
-        console.log("I am here")
+
+        function onDisconnect() {
+            setIsConnected(false);
+        }
+
         const handleConnect = () => {
             if (myId && currUser.chatId) {
                 socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId });
+                setIsConnected(true);
             }
         };
 
@@ -89,6 +97,7 @@ const StoreContextProvider = (props) => {
 
         socket.on("connect", handleConnect);
         socket.on("NEW_MESSAGE", handleNewMessage);
+        socket.on('disconnect', onDisconnect);
 
         if (messages) {
             socket.emit("JOIN_ROOM", messages);
@@ -97,13 +106,14 @@ const StoreContextProvider = (props) => {
 
         return () => {
             socket.off("NEW_MESSAGE", handleNewMessage);
+            socket.off('disconnect', onDisconnect);
             socket.off("connect", handleConnect);
 
-            if (CurrentUserId) {
-                socket.emit("LEAVE_ROOM", CurrentUserId);
-            }
+            // if (CurrentUserId) {
+            //     socket.emit("LEAVE_ROOM", CurrentUserId);
+            // }
         };
-    }, [userMessage,currUser]);
+    }, [messages, myId, currUser.chatId]);
 
     useEffect(() => {
         // this is to clear the user's messages recieved so that duplicate datas wont appear

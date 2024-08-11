@@ -27,22 +27,22 @@ const myMessages = async (req, res, next) => {
             members: { $all: [userId, myId] }
         })
 
-        if (!chat) {
-            const newchat = await new Chat({
-                name: `${findMyDetails.firstname} - ${findUserFromId.firstname}`,
-                isgroupchat: false,
-                members: [myId, userId]
+        // if (!chat) {
+        //     const newchat = await new Chat({
+        //         name: `${findMyDetails.firstname} - ${findUserFromId.firstname}`,
+        //         isgroupchat: false,
+        //         members: [myId, userId]
 
-            })
-            await newchat.save()
-            return res.status(200).json({
-                details: findUserFromId,
-                chatId: newchat._id,
-                currUserId: userId,
-                text: "New message created, be the first one to text"
+        //     })
+        //     await newchat.save()
+        //     return res.status(200).json({
+        //         details: findUserFromId,
+        //         chatId: newchat._id,
+        //         currUserId: userId,
+        //         text: "New message created, be the first one to text"
 
-            })
-        }
+        //     })
+        // }
 
         const messages = await Message.find({ chat: chat._id.toString() })
             .populate("sender", "firstname lastname avatar.url")
