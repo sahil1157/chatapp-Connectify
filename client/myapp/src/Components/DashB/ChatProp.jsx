@@ -4,23 +4,33 @@ import random from '../../images/Parrot.png';
 
 const ChatProp = ({ setOpen }) => {
     const { getMessages, setCurrentUserId, latestDatas, searchedUsers, currUser } = useContext(storeContext);
-
-    // console.log("latestDatas", latestDatas)
-
     const getLatestMessage = (userId) => {
         if (latestDatas && latestDatas.latestMessages) {
+            // Find messages for this specific user
             const latestMessageData = latestDatas.latestMessages.find(x =>
                 x.members && x.members._id && x.members._id.toString() === userId
             );
 
             if (latestMessageData) {
+                // The latest message object for this user
                 const message = latestMessageData.latestmessages;
+
                 if (message) {
-                    return {
-                        content: typeof message === 'string' ? message : message.content || "Be the first to start a conversation",
-                        sender: message.sender && message.sender._id.toString() === latestDatas.myId ? 'you' : '',
-                        date: message.createdAt || null
-                    };
+                    // If message is deleted
+                    if (message.deleted) {
+                        return {
+                            content: "Message was deleted",
+                            sender: '',
+                            date: message.createdAt || null
+                        };
+                    } else {
+                        // Normal message
+                        return {
+                            content: typeof message === 'string' ? message : message.content || "Be the first to start a conversation",
+                            sender: message.sender && message.sender._id.toString() === latestDatas.myId ? 'you' : '',
+                            date: message.createdAt || null
+                        };
+                    }
                 }
             }
         }
@@ -33,7 +43,6 @@ const ChatProp = ({ setOpen }) => {
                 const latestMessage = getLatestMessage(user._id);
                 const messageDate = latestMessage.date ? new Date(latestMessage.date).toLocaleDateString() : '';
 
-                // changes the current user's background if true....
                 const isSelected = currUser?.details?._id === user._id;
 
                 return (
@@ -45,7 +54,7 @@ const ChatProp = ({ setOpen }) => {
                         <div className={`flex flex-row gap-5 w-full overflow-hidden`}>
                             <div className='min-w-[48px] min-h-[48px] max-w-[48px] max-h-[48px] rounded-full overflow-hidden'>
                                 <img
-                                    src={user.avatar.url ? user.avatar.url : random}
+                                    src={user.avatar?.url ? user.avatar.url : random}
                                     alt=""
                                     className='w-full h-full object-cover rounded-full'
                                 />
@@ -56,7 +65,7 @@ const ChatProp = ({ setOpen }) => {
                                     <p className={`text-md font-bold ${isSelected ? "text-white" : "text-black"}`}>{user.lastname}</p>
                                 </div>
                                 <div className='flex justify-between w-full'>
-                                    <p className={`text-xs truncate ${isSelected ? "text-white" : "text-grey-500"}`}>
+                                    <p className={`text-xs truncate ${isSelected ? "text-white" : "text-grey-500"} ${latestMessage.deleted ? "italic text-gray-400" : ""}`}>
                                         {latestMessage?.sender ? `${latestMessage.sender}: ` : ''}{latestMessage.content}
                                     </p>
                                     <p className={`text-xs ${isSelected ? "text-white" : "text-grey-500"}`}>

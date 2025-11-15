@@ -2,6 +2,7 @@ import { createContext, useEffect, useMemo, useState } from "react";
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
 import { io } from 'socket.io-client'
+import { toast } from 'react-toastify'
 
 export const storeContext = createContext(null)
 
@@ -21,6 +22,7 @@ const StoreContextProvider = (props) => {
     const [myDetails, setMydetails] = useState()
     const [latestDatas, setLatestDatas] = useState()
     const [authLoading, setAuthLoading] = useState(true)
+    const [spam, setSpam] = useState('')
 
     const api = axios.create({
         baseURL: 'https://chatapp-connectify.onrender.com',
@@ -65,7 +67,7 @@ const StoreContextProvider = (props) => {
 
     // Implementing socketio....
 
-    const socket = io("https://chatapp-connectify.onrender.com/", {
+    const socket = io("http://localhost:5000", {
         withCredentials: true,
     });
 
@@ -93,9 +95,53 @@ const StoreContextProvider = (props) => {
             setCheck(false);
         };
 
+        const handleSpamDetected = (data) => {
+            const { message, originalMessage } = data;
+
+            setCheck(false);
+
+            toast.error(message || "Spam message detected!", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "colored"
+            });
+
+            console.warn("Spam blocked:", originalMessage);
+        };
+
+        // ✅ Add DELETE_MESSAGE listener
+        const handleDeleteMessage = ({ messageId }) => {
+            setStoreUSerMessage(prevMessages =>
+                prevMessages.map(msg =>
+                    msg.message._id === messageId ? { ...msg, deleted: true } : msg
+                )
+            );
+
+            // Optional: if you also store messages in currUser.message, update that as well
+        };
+
+        socket.on("BAD_WORD_DETECTED", (data) => {
+            toast.error(data.message, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "colored",
+            });
+
+            console.log("Bad word detected:", data);
+        });
         socket.on("connect", handleConnect);
         socket.on("NEW_MESSAGE", handleNewMessage);
+        socket.on("DELETE_MESSAGE", handleDeleteMessage); // add listener
         socket.on('disconnect', onDisconnect);
+        socket.on('SPAM_DETECTED', handleSpamDetected);
 
         if (messages) {
             socket.emit("JOIN_ROOM", messages);
@@ -104,12 +150,10 @@ const StoreContextProvider = (props) => {
 
         return () => {
             socket.off("NEW_MESSAGE", handleNewMessage);
+            socket.off("DELETE_MESSAGE", handleDeleteMessage); // cleanup
+            socket.off("BAD_WORD_DETECTED")
             socket.off('disconnect', onDisconnect);
             socket.off("connect", handleConnect);
-
-            // if (CurrentUserId) {
-            //     socket.emit("LEAVE_ROOM", CurrentUserId);
-            // }
         };
     }, [messages, myId, currUser.chatId]);
 
