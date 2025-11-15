@@ -78,8 +78,8 @@ def predict():
 
 if __name__ == '__main__':
     if load_models():
-        print("🔮 Spam API running on http://localhost:5001")
-        app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5001)))
-
+        port = int(os.environ.get("PORT", 5001))
+        print(f"🔮 Spam API running on 0.0.0.0:{port}")
+        app.run(host='0.0.0.0', port=port)
     else:
         print("❌ Failed to start - check model files")
