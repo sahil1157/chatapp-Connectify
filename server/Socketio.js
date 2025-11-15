@@ -11,7 +11,7 @@ const initializeSocket = (server) => {
     allowEIO3: true,
     transports: ["websocket", "polling"],
     cors: {
-      origin: "http://localhost:3000",
+      origin: "https://chatapp-connectify.onrender.com",
       methods: ["GET", "POST", "PUT"],
       credentials: true,
     },
