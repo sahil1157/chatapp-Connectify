@@ -5,6 +5,7 @@ import axios from "axios";
 import { helperBW } from "../server/Models/helper.js";
 
 const userSocketIDs = new Map();
+const FLASK_URL = process.env.FLASK_URL || "http://localhost:5001";
 
 const initializeSocket = (server) => {
   const io = new Server(server, {
@@ -76,7 +77,8 @@ const initializeSocket = (server) => {
         }
 
         // 🔹 SPAM DETECTION via Python model
-        const res = await axios.post("http://localhost:5001/predict", {
+        // 🔹 SPAM DETECTION via Python model
+        const res = await axios.post(`${FLASK_URL}/predict`, {
           message,
           model: "LR",
         });

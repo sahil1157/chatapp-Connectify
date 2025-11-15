@@ -13,6 +13,7 @@ import { initializeSocket } from './Socketio.js';
 
 dotenv.config();
 connectDB();
+const FLASK_URL = process.env.FLASK_URL || "http://localhost:5001";
 // Initializing Express app
 const app = express();
 const port = process.env.PORT || 5000;
