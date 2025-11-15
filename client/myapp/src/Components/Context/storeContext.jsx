@@ -68,10 +68,9 @@ const StoreContextProvider = (props) => {
     // Implementing socketio....
 
     const socket = io("https://chatapp-connectify.onrender.com", {
-        transports: ["websocket", "polling"],
+        transports: ["websocket"], // force websocket only
         withCredentials: true,
     });
-
 
     // const socket = io('http://localhost:5000', {
     //     withCredentials: true
