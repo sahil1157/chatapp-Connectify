@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useState } from "react";
+import { createContext, useEffect, useMemo, useState, useRef } from "react";
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
 import { io } from 'socket.io-client'
@@ -67,10 +67,18 @@ const StoreContextProvider = (props) => {
 
     // Implementing socketio....
 
-    const socket = io("https://chatapp-connectify.onrender.com", {
-        transports: ["websocket"], // force websocket only
-        withCredentials: true,
-    });
+    // Create socket only ONCE
+    const socketRef = useRef(null);
+
+    if (!socketRef.current) {
+        socketRef.current = io("https://chatapp-connectify.onrender.com", {
+            transports: ["websocket"],
+            withCredentials: true,
+        });
+    }
+
+    const socket = socketRef.current;
+
 
     // const socket = io('http://localhost:5000', {
     //     withCredentials: true
