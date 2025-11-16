@@ -12,7 +12,11 @@ const initializeSocket = (server) => {
     allowEIO3: true,
     transports: ["websocket", "polling"],
     cors: {
-      origin: "https://chatapp-connectify.netlify.app",
+      origin: [
+        "https://chatapp-connectify.netlify.app",
+        "https://chatapp-connectify.onrender.com",
+      ],
+
       methods: ["GET", "POST"],
       credentials: true,
     },

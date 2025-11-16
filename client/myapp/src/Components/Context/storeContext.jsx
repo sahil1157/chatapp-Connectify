@@ -8,7 +8,6 @@ export const storeContext = createContext(null)
 
 const StoreContextProvider = (props) => {
     const navigate = useNavigate()
-    // getting messages of the user which i've clicked
     const [messages, getMessages] = useState('')
     const [userMessage, setUserMessage] = useState()
     const [loggedIn, setLoggedIn] = useState(false)
@@ -26,9 +25,9 @@ const StoreContextProvider = (props) => {
 
     const api = axios.create({
         baseURL: 'https://chatapp-connectify.onrender.com',
-        // baseURL: 'http://localhost:5000',
         withCredentials: true
     })
+
     useEffect(() => {
         const checkUserAuth = async () => {
             try {
@@ -36,7 +35,6 @@ const StoreContextProvider = (props) => {
                 if (checkAuth)
                     return setAuthLoading(false)
             } catch (error) {
-                // console.log(error)
                 setAuthLoading(false)
                 return navigate("/login")
             }
@@ -44,8 +42,6 @@ const StoreContextProvider = (props) => {
         checkUserAuth()
     }, [])
 
-
-    // routes for getting the users...
     const [users, getUsers] = useState([])
 
     useEffect(() => {
@@ -65,28 +61,33 @@ const StoreContextProvider = (props) => {
         fetchApi()
     }, [currUser, loggedIn, userMessage])
 
-    // Implementing socketio....
-
-    // Create socket only ONCE
+    // -------------------------------------------------------
+    //                SOCKET FIX (ONLY CHANGE)
+    // -------------------------------------------------------
     const socketRef = useRef(null);
-
-    if (!socketRef.current) {
-        socketRef.current = io("https://chatapp-connectify.onrender.com", {
-            transports: ["websocket"],
-            withCredentials: true,
-        });
-    }
-
-    const socket = socketRef.current;
-
-
-    // const socket = io('http://localhost:5000', {
-    //     withCredentials: true
-    // })
-
-    const [isConnected, setIsConnected] = useState(socket.connected);
+    const [socket, setSocket] = useState(null);
 
     useEffect(() => {
+        if (!socketRef.current) {
+            socketRef.current = io("https://chatapp-connectify.onrender.com", {
+                transports: ["websocket"],
+                withCredentials: true,
+            });
+            setSocket(socketRef.current);
+        }
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+        };
+    }, []);
+    // -------------------------------------------------------
+
+    const [isConnected, setIsConnected] = useState(false);
+
+    useEffect(() => {
+        if (!socket) return; // socket not ready yet
 
         function onDisconnect() {
             setIsConnected(false);
@@ -122,15 +123,12 @@ const StoreContextProvider = (props) => {
             console.warn("Spam blocked:", originalMessage);
         };
 
-        // ✅ Add DELETE_MESSAGE listener
         const handleDeleteMessage = ({ messageId }) => {
             setStoreUSerMessage(prevMessages =>
                 prevMessages.map(msg =>
                     msg.message._id === messageId ? { ...msg, deleted: true } : msg
                 )
             );
-
-            // Optional: if you also store messages in currUser.message, update that as well
         };
 
         socket.on("BAD_WORD_DETECTED", (data) => {
@@ -146,9 +144,10 @@ const StoreContextProvider = (props) => {
 
             console.log("Bad word detected:", data);
         });
+
         socket.on("connect", handleConnect);
         socket.on("NEW_MESSAGE", handleNewMessage);
-        socket.on("DELETE_MESSAGE", handleDeleteMessage); // add listener
+        socket.on("DELETE_MESSAGE", handleDeleteMessage);
         socket.on('disconnect', onDisconnect);
         socket.on('SPAM_DETECTED', handleSpamDetected);
 
@@ -159,18 +158,16 @@ const StoreContextProvider = (props) => {
 
         return () => {
             socket.off("NEW_MESSAGE", handleNewMessage);
-            socket.off("DELETE_MESSAGE", handleDeleteMessage); // cleanup
+            socket.off("DELETE_MESSAGE", handleDeleteMessage);
             socket.off("BAD_WORD_DETECTED")
             socket.off('disconnect', onDisconnect);
             socket.off("connect", handleConnect);
         };
-    }, [messages, myId, currUser.chatId]);
+    }, [socket, messages, myId, currUser.chatId]);
 
     useEffect(() => {
-        // this is to clear the user's messages recieved so that duplicate datas wont appear
         setStoreUSerMessage([])
     }, [messages])
-
 
     const sendMessage = (message, chatId, userId) => {
         setCurrentUserId(userId)
@@ -178,7 +175,6 @@ const StoreContextProvider = (props) => {
         if (socket) {
             socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
             setUserMessage(message)
-
         }
     }
 
@@ -202,7 +198,6 @@ const StoreContextProvider = (props) => {
                 setLoading(false)
             } catch (error) {
                 console.log(error)
-                // console.error('Error:', error.response ? error.response.data : error.message);
                 setLoading(false)
             }
         };
@@ -212,15 +207,15 @@ const StoreContextProvider = (props) => {
         }
     }, [messages]);
 
-    // search functionality using fetched users
     const [search, setSearch] = useState("")
     const [searchedUsers, setSearchedUsers] = useState(users?.findUsers)
 
     useEffect(() => {
-
         if (users && users.findUsers) {
             if (search.length > 0) {
-                const findUsers = users?.findUsers?.filter(x => x.firstname.toLowerCase().includes(search.toString().toLowerCase()))
+                const findUsers = users?.findUsers?.filter(x =>
+                    x.firstname.toLowerCase().includes(search.toLowerCase())
+                )
                 return setSearchedUsers(findUsers)
             }
             else {
@@ -252,8 +247,6 @@ const StoreContextProvider = (props) => {
         searchedUsers,
         authLoading,
         CurrentUserId
-
-
     }
 
     return <storeContext.Provider value={contextValue}>

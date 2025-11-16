@@ -1,15 +1,15 @@
 import express from "express";
-import { createServer } from 'http';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import { createServer } from "http";
+import cors from "cors";
+import dotenv from "dotenv";
 import connectDB from "./Config/db.js";
-import router from './Routes/Routing.js';
+import router from "./Routes/Routing.js";
 import errorMiddleware from "./middleware/error-middleware.js";
-import cookieParser from 'cookie-parser';
+import cookieParser from "cookie-parser";
 import chatRoutes from "./Routes/chatRoutes.js";
 import bodyParser from "body-parser";
-import colors from 'colors';
-import { initializeSocket } from './Socketio.js';
+import colors from "colors";
+import { initializeSocket } from "./Socketio.js";
 
 dotenv.config();
 connectDB();
@@ -22,14 +22,20 @@ const server = createServer(app);
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors({
-    origin: 'https://chatapp-connectify.netlify.app',
+app.use(
+  cors({
+    origin: [
+      "https://chatapp-connectify.netlify.app",
+      "https://chatapp-connectify.onrender.com",
+    ],
+
     // origin: 'http://localhost:3000',
-    credentials: true
-}));
+    credentials: true,
+  })
+);
 
 // Router middleware
-app.use('/', router);
+app.use("/", router);
 app.use("/chat", chatRoutes);
 
 // Error middleware
@@ -40,7 +46,5 @@ const io = initializeSocket(server);
 
 // Start server
 server.listen(port, () => {
-    console.log(colors.red.bold(`Server is running on port ${port}`));
+  console.log(colors.red.bold(`Server is running on port ${port}`));
 });
-
-
