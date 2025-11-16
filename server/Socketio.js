@@ -16,63 +16,56 @@ const initializeSocket = (server) => {
         "https://chatapp-connectify.netlify.app",
         "https://chatapp-connectify.onrender.com",
       ],
-
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
 
   io.on("connection", (socket) => {
+    console.log("Socket connected:", socket.id);
+
     // Register user
     socket.on("REGISTER_USER", ({ userId, chatId }) => {
+      if (!userId || !chatId) return;
       userSocketIDs.set(userId, socket.id);
       socket.join(chatId);
+      console.log(`User ${userId} joined chat ${chatId}`);
     });
 
     // Leave room
     socket.on("LEAVE_ROOM", (chatId) => {
+      if (!chatId) return;
       socket.leave(chatId);
+      console.log(`Socket ${socket.id} left chat ${chatId}`);
     });
 
     // Handle new message
     socket.on("NEW_MESSAGE", async ({ message, chatId, userId }) => {
       try {
+        if (!message || !chatId || !userId) return;
+
         // 🔹 BAD WORD DETECTION
         let isBadWord = false;
         let badWordConfidence = null;
         let finalMessage = message;
+        const detectedWords = [];
 
-        // Track all bad words detected
-        let detectedWords = [];
-
-        // Iterate all bad words
         helperBW.forEach((bw) => {
-          // Flexible regex to catch bad words in message
           const regex = new RegExp(`\\b${bw.word}\\b`, "gi");
           if (regex.test(finalMessage)) {
             isBadWord = true;
             badWordConfidence = bw.confidence;
             detectedWords.push(bw.word);
-
-            // Replace all occurrences with ****
             finalMessage = finalMessage.replace(regex, "****");
-
-            console.log(
-              "%c⚠️ BAD WORD DETECTED:",
-              "color: orange; font-weight: bold;",
-              bw.word,
-              "-> censored"
-            );
+            console.log("⚠️ BAD WORD DETECTED:", bw.word, "-> censored");
           }
         });
 
-        // Emit single toast for all bad words detected
         if (isBadWord && detectedWords.length > 0) {
           const senderSocketId = userSocketIDs.get(userId);
           if (senderSocketId) {
             io.to(senderSocketId).emit("BAD_WORD_DETECTED", {
-              message: `Inappropriate words detected and censored!
-              )}`,
+              message: `Inappropriate words detected and censored!`,
               originalMessage: message,
               badWords: detectedWords,
               confidence: badWordConfidence,
@@ -80,7 +73,6 @@ const initializeSocket = (server) => {
           }
         }
 
-        // 🔹 SPAM DETECTION via Python model
         // 🔹 SPAM DETECTION via Python model
         const res = await axios.post(`${FLASK_URL}/predict`, {
           message,
@@ -90,39 +82,11 @@ const initializeSocket = (server) => {
         const pythonResponse = res.data;
         const isSpam = pythonResponse.spam || false;
         const confidence = pythonResponse.confidence || null;
-        const additionalData = pythonResponse.additionalData || {};
 
-        console.log(
-          "\n%c===== NEW MESSAGE ANALYSIS =====",
-          "color: #00f; font-weight: bold; font-size: 16px"
-        );
-        console.log(
-          "%cOriginal Message:",
-          "color: #555; font-weight: bold;",
-          message
-        );
-        console.log(
-          "%cSpam Detected:",
-          "color: red; font-weight: bold;",
-          isSpam
-        );
-        console.log(
-          "%cSpam Confidence:",
-          "color: orange; font-weight: bold;",
-          confidence
-        );
-        console.log(
-          "%cAdditional Data:",
-          "color: green; font-weight: bold;",
-          additionalData
-        );
-        console.log(
-          "%c===============================\n",
-          "color: #00f; font-weight: bold;"
-        );
+        console.log("NEW MESSAGE ANALYSIS:", { message, isSpam, confidence });
 
         // 🔹 SAVE MESSAGE
-        const createNewMessage = new Message({
+        const newMessage = new Message({
           chat: chatId,
           sender: userId,
           content: finalMessage,
@@ -132,7 +96,7 @@ const initializeSocket = (server) => {
           badWordConfidence,
         });
 
-        const savedMessage = await createNewMessage.save();
+        const savedMessage = await newMessage.save();
 
         // Update latest message in chat
         await Chat.findByIdAndUpdate(chatId, {
@@ -159,20 +123,12 @@ const initializeSocket = (server) => {
           }
 
           setTimeout(async () => {
-            await Message.findByIdAndUpdate(savedMessage._id, {
-              deleted: true,
-            });
-            io.to(chatId).emit("DELETE_MESSAGE", {
-              messageId: savedMessage._id,
-            });
+            await Message.findByIdAndUpdate(savedMessage._id, { deleted: true });
+            io.to(chatId).emit("DELETE_MESSAGE", { messageId: savedMessage._id });
           }, 15000);
         }
       } catch (error) {
-        console.error(
-          "%cError handling NEW_MESSAGE:",
-          "color: red; font-weight: bold;",
-          error
-        );
+        console.error("Error handling NEW_MESSAGE:", error);
       }
     });
 

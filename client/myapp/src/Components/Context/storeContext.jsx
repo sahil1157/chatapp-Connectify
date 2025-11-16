@@ -70,7 +70,7 @@ const StoreContextProvider = (props) => {
     useEffect(() => {
         if (!socketRef.current) {
             socketRef.current = io("https://chatapp-connectify.onrender.com", {
-                transports: ["websocket"],
+                transports: ["websocket", "polling"],
                 withCredentials: true,
             });
             setSocket(socketRef.current);
