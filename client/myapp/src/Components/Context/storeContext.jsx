@@ -1,4 +1,4 @@
-import { createContext, useEffect, useMemo, useState, useRef } from "react";
+import { createContext, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import axios from 'axios'
 import { useNavigate } from "react-router-dom";
 import { io } from 'socket.io-client'
@@ -55,62 +55,71 @@ const StoreContextProvider = (props) => {
                         setMyId(x.data.myId)
                     })
             } catch (error) {
-                console.log(error)
+                console.log("Error fetching users:", error)
             }
         }
         fetchApi()
     }, [currUser, loggedIn, userMessage])
 
     // -------------------------------------------------------
-    //                SOCKET FIX (ONLY CHANGE)
+    //                IMPROVED SOCKET SETUP
     // -------------------------------------------------------
     const socketRef = useRef(null);
     const [socket, setSocket] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
 
     useEffect(() => {
+        // Only create socket if not exists and we have the URL
         if (!socketRef.current) {
+            console.log("Initializing socket connection...");
             socketRef.current = io("https://chatapp-connectify.onrender.com", {
                 transports: ["websocket", "polling"],
                 withCredentials: true,
+                timeout: 10000,
+                forceNew: true,
+                reconnectionAttempts: 5,
+                reconnectionDelay: 1000
             });
             setSocket(socketRef.current);
         }
 
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-            }
-        };
-    }, []);
-    // -------------------------------------------------------
+        const currentSocket = socketRef.current;
 
-    const [isConnected, setIsConnected] = useState(false);
+        // Connection events
+        currentSocket.on("connect", () => {
+            console.log("Socket connected:", currentSocket.id);
+            setIsConnected(true);
 
-    useEffect(() => {
-        if (!socket) return; // socket not ready yet
-
-        function onDisconnect() {
-            setIsConnected(false);
-        }
-
-        const handleConnect = () => {
+            // Register user after connection is established
             if (myId && currUser.chatId) {
-                socket.emit("REGISTER_USER", { userId: myId, chatId: currUser.chatId });
-                setIsConnected(true);
+                currentSocket.emit("REGISTER_USER", {
+                    userId: myId,
+                    chatId: currUser.chatId
+                });
             }
-        };
+        });
 
-        const handleNewMessage = (data) => {
+        currentSocket.on("connect_error", (error) => {
+            console.error("Socket connection error:", error);
+            setIsConnected(false);
+        });
+
+        currentSocket.on("disconnect", (reason) => {
+            console.log("Socket disconnected:", reason);
+            setIsConnected(false);
+        });
+
+        // Message events
+        currentSocket.on("NEW_MESSAGE", (data) => {
+            console.log("New message received:", data);
             setStoreUSerMessage((prevMessages) => [...prevMessages, data]);
             setCheck(false);
-        };
+        });
 
-        const handleSpamDetected = (data) => {
-            const { message, originalMessage } = data;
-
+        currentSocket.on("SPAM_DETECTED", (data) => {
+            console.log("Spam detected:", data);
             setCheck(false);
-
-            toast.error(message || "Spam message detected!", {
+            toast.error(data.message || "Spam message detected!", {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -119,19 +128,10 @@ const StoreContextProvider = (props) => {
                 draggable: true,
                 theme: "colored"
             });
+        });
 
-            console.warn("Spam blocked:", originalMessage);
-        };
-
-        const handleDeleteMessage = ({ messageId }) => {
-            setStoreUSerMessage(prevMessages =>
-                prevMessages.map(msg =>
-                    msg.message._id === messageId ? { ...msg, deleted: true } : msg
-                )
-            );
-        };
-
-        socket.on("BAD_WORD_DETECTED", (data) => {
+        currentSocket.on("BAD_WORD_DETECTED", (data) => {
+            console.log("Bad word detected:", data);
             toast.error(data.message, {
                 position: "top-right",
                 autoClose: 3000,
@@ -141,91 +141,131 @@ const StoreContextProvider = (props) => {
                 draggable: true,
                 theme: "colored",
             });
-
-            console.log("Bad word detected:", data);
         });
 
-        socket.on("connect", handleConnect);
-        socket.on("NEW_MESSAGE", handleNewMessage);
-        socket.on("DELETE_MESSAGE", handleDeleteMessage);
-        socket.on('disconnect', onDisconnect);
-        socket.on('SPAM_DETECTED', handleSpamDetected);
+        currentSocket.on("DELETE_MESSAGE", ({ messageId }) => {
+            setStoreUSerMessage(prevMessages =>
+                prevMessages.map(msg =>
+                    msg.message._id === messageId ? { ...msg, deleted: true } : msg
+                )
+            );
+        });
 
-        if (messages) {
+        // Cleanup function
+        return () => {
+            if (currentSocket) {
+                currentSocket.off("connect");
+                currentSocket.off("connect_error");
+                currentSocket.off("disconnect");
+                currentSocket.off("NEW_MESSAGE");
+                currentSocket.off("SPAM_DETECTED");
+                currentSocket.off("BAD_WORD_DETECTED");
+                currentSocket.off("DELETE_MESSAGE");
+            }
+        };
+    }, [myId, currUser.chatId]); // Only depend on these values
+
+    // Join room when messages change
+    useEffect(() => {
+        if (socket && isConnected && messages) {
+            console.log("Joining room:", messages);
             socket.emit("JOIN_ROOM", messages);
             setCurrentUserId(messages);
         }
-
-        return () => {
-            socket.off("NEW_MESSAGE", handleNewMessage);
-            socket.off("DELETE_MESSAGE", handleDeleteMessage);
-            socket.off("BAD_WORD_DETECTED")
-            socket.off('disconnect', onDisconnect);
-            socket.off("connect", handleConnect);
-        };
-    }, [socket, messages, myId, currUser.chatId]);
+    }, [socket, isConnected, messages]);
 
     useEffect(() => {
         setStoreUSerMessage([])
     }, [messages])
 
-    const sendMessage = (message, chatId, userId) => {
-        setCurrentUserId(userId)
-        setCheck(true)
-        if (socket) {
-            socket.emit("NEW_MESSAGE", { message, chatId, userId, messages })
-            setUserMessage(message)
+    // ✅ FIX: Wrap sendMessage in useCallback to prevent unnecessary re-renders
+    const sendMessage = useCallback(async (message, chatId, userId) => {
+        if (!socket || !isConnected) {
+            toast.error("Not connected to server");
+            return;
         }
-    }
+
+        if (!message.trim()) {
+            toast.error("Message cannot be empty");
+            return;
+        }
+
+        setCurrentUserId(userId);
+        setCheck(true);
+
+        console.log("Sending message:", { message, chatId, userId, messages });
+
+        try {
+            socket.emit("NEW_MESSAGE", {
+                message: message.trim(),
+                chatId,
+                userId,
+                currentChatId: messages
+            });
+            setUserMessage(message);
+        } catch (error) {
+            console.error("Error sending message:", error);
+            toast.error("Failed to send message");
+            setCheck(false);
+        }
+    }, [socket, isConnected, messages]); // Add dependencies that sendMessage uses
 
     useEffect(() => {
-        if (!messages)
-            return console.log('no users')
+        if (!messages) {
+            console.log('No user selected for messaging');
+            return;
+        }
+
         const sendId = async () => {
             try {
-                setLoading(true)
+                setLoading(true);
                 const response = await api.post("chat/mymessages/", { userId: messages });
-                const { text, details, chatId, message, currUserId } = response.data
-                setCurrUser(
-                    {
-                        details,
-                        chatId,
-                        text,
-                        userId: currUserId,
-                        message
-                    }
-                )
-                setLoading(false)
+                const { text, details, chatId, message, currUserId } = response.data;
+
+                setCurrUser({
+                    details,
+                    chatId,
+                    text,
+                    userId: currUserId,
+                    message
+                });
+
+                // Register user with socket if connected
+                if (socket && isConnected && chatId) {
+                    socket.emit("REGISTER_USER", {
+                        userId: myId,
+                        chatId: chatId
+                    });
+                }
+
+                setLoading(false);
             } catch (error) {
-                console.log(error)
-                setLoading(false)
+                console.error("Error fetching messages:", error);
+                setLoading(false);
             }
         };
 
-        if (messages) {
-            sendId();
-        }
-    }, [messages]);
+        sendId();
+    }, [messages, socket, isConnected, myId]);
 
     const [search, setSearch] = useState("")
-    const [searchedUsers, setSearchedUsers] = useState(users?.findUsers)
+    const [searchedUsers, setSearchedUsers] = useState(users?.findUsers || [])
 
     useEffect(() => {
         if (users && users.findUsers) {
             if (search.length > 0) {
-                const findUsers = users?.findUsers?.filter(x =>
+                const findUsers = users.findUsers.filter(x =>
                     x.firstname.toLowerCase().includes(search.toLowerCase())
                 )
-                return setSearchedUsers(findUsers)
-            }
-            else {
+                setSearchedUsers(findUsers)
+            } else {
                 setSearchedUsers(users.findUsers)
             }
         }
-
     }, [search, users])
 
-    const contextValue = {
+    // ✅ FIX: Now include sendMessage in dependencies since it's wrapped in useCallback
+    const contextValue = useMemo(() => ({
         api,
         sendMessage,
         getUsers,
@@ -240,6 +280,7 @@ const StoreContextProvider = (props) => {
         setCheck,
         check,
         socket,
+        isConnected,
         myDetails,
         latestDatas,
         setLoggedIn,
@@ -247,11 +288,29 @@ const StoreContextProvider = (props) => {
         searchedUsers,
         authLoading,
         CurrentUserId
-    }
+    }), [
+        api,
+        sendMessage, // ✅ Now this is stable due to useCallback
+        users,
+        currUser,
+        loading,
+        userId,
+        storeUserMessage,
+        check,
+        socket,
+        isConnected,
+        myDetails,
+        latestDatas,
+        searchedUsers,
+        authLoading,
+        CurrentUserId
+    ]);
 
-    return <storeContext.Provider value={contextValue}>
-        {props.children}
-    </storeContext.Provider>
+    return (
+        <storeContext.Provider value={contextValue}>
+            {props.children}
+        </storeContext.Provider>
+    )
 }
 
 export default StoreContextProvider
